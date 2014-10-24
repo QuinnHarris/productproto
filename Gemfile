@@ -15,6 +15,8 @@ gem 'haml'
 
 gem 'foundation-rails'
 
+gem 'bower-rails'
+
 # See https://github.com/sstephenson/execjs#readme for more supported runtimes
 gem 'therubyracer',  platforms: :ruby
 
