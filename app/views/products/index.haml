@@ -1,1 +1,72 @@
-%h1 Test
+:javascript
+  new data = #{@data}.to_json
+
+%div.properties
+  %dl#properties
+    // There can be more than one property here
+    %dt Colors
+    %dd
+      %ul.swatches
+        %li.selected
+          %a{ href: '#' }
+            %div Unspec
+        - for color in @colors
+          %li{ data: { property: color[:id]} }
+            %a{ href: '#' }
+              = image_tag("/gildan/Gildan_#{color[:name].gsub(' ','')}.gif")
+              %span{ class: @light_colors.include?(color[:name]) ? 'dark' : nil }= color[:name]
+
+%table.prices
+  %colgroup
+    %col{ span: 5 }
+    %col.admin{ span: 4 }
+  %thead
+    %tr
+      %td{ rowspan: 2} Color
+      %td{ rowspan: 2, colspan: 2 } Quantity
+      %td{ colspan: 2 } Price
+      %td{ colspan: 2 } Cost
+      %td{ rowspan: 2} Profit
+      %td{ rowspan: 2} Margin
+    %tr
+      %td Unit
+      %td Total
+      %td Unit
+      %td Total
+
+  %tbody.current.ready
+    - rows = @sizes.map { |size| [size, @costs.find { |p| p[:predicate].flatten.include?(size[:id]) }[:breaks][0][1]] }.group_by { |size, n| n }
+    %tr.head
+      %td{ rowspan: rows.length+2 }
+        .swatch
+          %div Unspecified
+        %div
+          %a.remove{ href: '#' } Remove
+
+    - for num, list in [[rows.first.first, [{id: :un, name: '?'}]]] + rows.to_a
+      %tr.other
+        %td
+          - for size, price in list
+            %label
+              = size[:name]
+              = number_field_tag size[:id], min: 0, step: 1, size: 3
+              %span X
+        %td.quantity
+        %td.price.unit_price= '%0.02f' % (num * 1.3)
+        %td.price.total_price
+        %td.price.unit_cost= '%0.02f' % num
+        %td.price.total_cost
+        %td.price.profit
+        %td.margin 25%
+
+  %tfoot
+    %tr
+      %td{ colspan: 3 }
+      %td
+      %td.price.total_price
+      %td
+      %td.price.total_cost
+      %td.price.profit
+      %td
+
+%a.add{ href: '#' } Add Color

@@ -1,3 +1,133 @@
-// Place all the styles related to the products controller here.
-// They will automatically be included in application.css.
-// You can use Sass (SCSS) here: http://sass-lang.com/
+.admin {
+  background-color: green;
+}
+
+table.prices {
+  thead td {
+    text-align: center;
+  }
+
+  tbody {
+    &:hover { background-color: #ffffe0; }
+    &.current { background-color: #ffffc0; }
+
+    tr td label {
+      input { display: none; }
+      span {
+        display: inline-block;
+        border: thin solid grey;
+        transition: height 1s;
+        height: 37px;
+        width: 63px;
+      }
+    }
+    &.ready tr td label {
+      input { display: inline-block; }
+      span { display: none; }
+    }
+
+    tr {
+      transition: height 1s, opacity 1s;
+
+      height: 2em;
+      &.head { height: 0; }
+      font-size: 1em;
+
+      td {
+        &.price:before { content: "$"; }
+        padding: 0 0.2rem;
+        /*width: 6rem;*/
+        text-align: right;
+
+        label {
+          display: inline-block;
+          margin: 0 0.5em;
+
+          transition: line-height 1s;
+          line-height: 2em;
+
+          input {
+            margin: 0;
+            width: 4.5em; }
+        }
+        line-height: 0;
+        padding: 0;
+      }
+
+      &.shrink {
+        height: 0;
+        opacity: 0;
+        td label {
+          line-height: 0;
+          span {
+            height: 0;
+          }
+        }
+      }
+    }
+  }
+}
+
+ul#variants {
+  list-style: none;
+
+  li {
+    &.current { background-color: #ffffe0; }
+    border: thin solid grey;
+    margin: 1em;
+
+    div.wrapper {
+      display: flex;
+      flex-flow: row;
+
+      div.properties {
+        flex: 10 1 auto;
+      }
+
+      div.prices {
+        flex: 1 1 100%;
+        justify-content: flex-end;
+      }
+    }
+  }
+}
+
+dl#properties {
+  dd ul.swatches {
+    list-style: none;
+
+    li {
+      display: inline-block;
+      margin: 2px;
+
+      border: thin solid white;
+      &:hover { border: 2px solid #F99; }
+      &.included { border: 2px solid yellow; }
+      &.selected { border: 2px solid red; }
+    }
+  }
+}
+
+dl#properties dd ul.swatches li a, .swatch {
+  position: relative;
+
+  div { width: 68px; height: 36px; }
+
+  span {
+    position: absolute;
+    left: 0;
+    right: 0;
+    padding: 1px 3px 1px 3px;
+    text-align: center;
+    width: 100%;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 15px;
+    z-index: 1;
+
+    color: white;
+    &.dark { color: black; }
+  }
+
+  img { z-index: 0; }
+}
