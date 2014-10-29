@@ -38,6 +38,11 @@ gem 'sequel-devise'
 
 # Testing
 group :development, :test do
+  gem 'coffee-rails-source-maps'
+
+  gem 'konacha'
+  gem 'selenium-webdriver'
+
   gem 'rspec-rails', '~> 3.0.0'
   gem 'factory_girl_rails'
   gem 'faker'
