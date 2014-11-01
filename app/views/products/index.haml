@@ -35,7 +35,7 @@
       %td Total
 
   %tbody.current.ready
-    - rows = @sizes.map { |size| [size, @costs.find { |p| p[:predicate].flatten.include?(size[:id]) }[:breaks][0][1]] }.group_by { |size, n| n }
+    - rows = @sizes.map { |size| [size, @costs.find { |p| p[:predicate].flatten.include?(size[:id]) }[:breaks][0][:v]] }.group_by { |size, v| v }
     %tr.head
       %td{ rowspan: rows.length+2 }
         .swatch
