@@ -1,7 +1,3 @@
-class window.PricingProduct extends PricingBase
-  constructor: (@data) ->
-    @params = {}
-
 head_select = (li) ->
   $(li).addClass('selected').siblings().removeClass('selected')
 

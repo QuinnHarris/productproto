@@ -22,7 +22,7 @@ gem 'therubyracer',  platforms: :ruby
 
 # Use jquery as the JavaScript library
 gem 'jquery-rails'
-gem 'jquery-ui-rails'
+#gem 'jquery-ui-rails'
 
 # Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks
 gem 'turbolinks'
@@ -35,6 +35,9 @@ gem 'sdoc', '~> 0.4.0',          group: :doc
 
 gem 'devise'
 gem 'sequel-devise'
+
+gem 'ember-rails'
+gem 'ember-source'
 
 # Testing
 group :development, :test do
