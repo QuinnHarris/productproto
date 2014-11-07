@@ -1,5 +1,7 @@
 # For more information see: http://emberjs.com/guides/routing/
 
 Ink.Router.map ()->
-  # @resource('posts')
+  @resource 'products'
 
+Ink.Router.reopen
+  location: 'history'

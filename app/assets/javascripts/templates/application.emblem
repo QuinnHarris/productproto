@@ -1,0 +1,5 @@
+%h1 Application Begin
+
+= outlet
+
+%h1 Application End

@@ -1,0 +1,30 @@
+table.prices
+  colgroup
+    col span="5"
+    col.admin span="4"
+  thead
+    tr
+      td rowspan="2" Color
+      td rowspan="2" Variants
+      td rowspan="2" Qty
+      td colspan="2" Price
+      td colspan="2" Cost
+      td rowspan="2" Profit
+      td rowspan="2" Margin
+    tr
+      td Unit
+      td Total
+      td Unit
+      td Total
+  tbody
+    each variants itemController="variant"
+      tr
+        td
+        td= input type="number" valueBinding="quantity" min=0 size="4"
+        td= quantity
+        td= input type="text" valueBinding="unit_price" size="4" pattern="\\d+"
+        td= total_price
+        td= input type="text" valueBinding="unit_cost" size="4"
+        td= total_cost
+        td= input type="text" valueBinding="profit" size="4"
+        td= input type="text" valueBinding="margin" size="4"
