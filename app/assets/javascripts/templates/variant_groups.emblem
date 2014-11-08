@@ -21,7 +21,7 @@ table.prices
       tr
         td
         td
-          each variants itemController="variant"
+          each
             label
               = name
               = input type="number" valueBinding="quantity" min=0 size="4"
@@ -32,3 +32,14 @@ table.prices
         td= total_cost
         td= input type="text" valueBinding="profit" size="4"
         td= input type="text" valueBinding="margin" size="4"
+  tfoot
+    tr
+      td
+      td
+      td= quantity
+      td
+      td
+      td
+      td
+      td
+      td= input type="text" valueBinding="margin" size="4"
