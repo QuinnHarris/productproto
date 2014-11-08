@@ -17,10 +17,14 @@ table.prices
       td Unit
       td Total
   tbody
-    each variants itemController="variant"
+    each variantGroups itemController="variantGroup"
       tr
         td
-        td= input type="number" valueBinding="quantity" min=0 size="4"
+        td
+          each variants itemController="variant"
+            label
+              = name
+              = input type="number" valueBinding="quantity" min=0 size="4"
         td= quantity
         td= input type="text" valueBinding="unit_price" size="4" pattern="\\d+"
         td= total_price

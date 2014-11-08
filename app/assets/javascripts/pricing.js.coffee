@@ -57,6 +57,13 @@ class window.PricingBase
     price_basis = @_applyStack(@data.prices, predicate, cost_basis)
     { costs: cost_basis, prices: price_basis }
 
+  getPrice: (basis, quantity) ->
+    result = null
+    for br in basis
+      break if br.n > quantity
+      result = br.v
+    result
+
 
 class window.PricingInstance extends window.PricingBase
   constructor: (@data) ->

@@ -1,4 +1,4 @@
 Ink.ProductsRoute = Ember.Route.extend
   renderTemplate: ->
     @render 'products'
-    @render 'variants', outlet: 'variants', into: 'products'
+    @render 'variantGroups', outlet: 'groups', into: 'products'

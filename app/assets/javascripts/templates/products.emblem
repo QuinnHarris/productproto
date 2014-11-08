@@ -1,5 +1,5 @@
 h2 Products Begin
 
-= outlet "variants"
+= outlet "groups"
 
 h2 Products End

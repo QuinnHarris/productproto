@@ -18,6 +18,7 @@
 #= require ./router
 
 #= require products
+#= require pricing
 
 #= require_self
 
