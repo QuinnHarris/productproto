@@ -37,7 +37,7 @@ gem 'devise'
 gem 'sequel-devise'
 
 gem 'ember-rails'
-gem 'ember-source'
+gem 'ember-source' #, '=1.9.0beta.1.1'
 gem 'emblem-rails'
 
 # Testing

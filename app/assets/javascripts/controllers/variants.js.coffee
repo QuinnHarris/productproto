@@ -1,22 +1,38 @@
-Ink.VariantGroupsController = Ember.Controller.extend
-  needs: 'variantGroup'
+Ink.VariantGroupsController = Ember.ArrayController.extend
+  itemController: 'variantGroup'
   properties: [9]
-  variantGroups: Ember.computed 'properties', ->
-    product_data.variantGroups(@get('properties'), 'sizes')
+  # Use arrangedContent to allow actual content to depend on properties
+  # Regular model is not used
+  arrangedContent: Ember.computed 'properties', ->
+    [[ { id: 1, name: '?' } ]].concat product_data.variantGroups(@get('properties'), 'sizes')
 
-  quantity: Ember.computed 'controller.variantGroup.@each.quantity', ->
-    10
-    #controller.variantGroup.get('@each').reduce ((sum, v) -> sum + parseInt(v.get('quantity'))), 0
+  quantity: Ember.computed '@each.quantity', ->
+    @get('@each.quantity').reduce ((a, b) -> a + b), 0
 
-  margin: Ember.computed 'unit_price', 'unit_cost', (key, value) ->
-    10.0
+  total_price: Ember.computed '@each.total_price', ->
+    @get('@each.total_price').reduce ((a, b) -> a + b), 0
+
+  total_cost: Ember.computed '@each.total_cost', ->
+    @get('@each.total_cost').reduce ((a, b) -> a + b), 0
+
+  profit: Ember.computed '@each.profit', ->
+    @get('@each.profit').reduce ((a, b) -> a + b), 0
+
+  margin: Ember.computed 'total_price', 'total_cost', (key, value) ->
+    unit_price = @get('total_price')
+    return '' unless unit_price
+    ((unit_price - @get('total_cost')) * 100.0 / unit_price).toFixed(1)
 
 
 Ink.VariantGroupController = Ember.ArrayController.extend
   itemController: 'variant'
 
+  # why doesn't @first work in the template?
+  firstRow: Ember.computed ->
+    @get('parentController')._subControllers[0] == this
+
   quantity: Ember.computed '@each.quantity', ->
-    @_subControllers.reduce ((sum, v) -> sum + parseInt(v.get('quantity'))), 0
+    @get('@each.quantity').reduce ((sum, v) -> sum + parseInt(v)), 0
 
   parentQuantity: Ember.computed.alias('parentController.quantity')
 
@@ -52,6 +68,7 @@ Ink.VariantGroupController = Ember.ArrayController.extend
            (@get('unit_cost') / (1-parseFloat(value)/100.0)).toFixed(3) )
     else
       unit_price = @get('unit_price')
+      return '' unless unit_price
       ((unit_price - @get('unit_cost')) * 100.0 / unit_price).toFixed(1)
 
 Ink.VariantController = Ember.ObjectController.extend

@@ -17,16 +17,17 @@ table.prices
       td Unit
       td Total
   tbody
-    each variantGroups itemController="variantGroup"
+    each
       tr
-        td
+        if firstRow
+          td rowspan=parentController.length
         td
           each
             label
               = name
               = input type="number" valueBinding="quantity" min=0 size="4"
         td= quantity
-        td= input type="text" valueBinding="unit_price" size="4" pattern="\\d+"
+        td= input type="text" valueBinding="unit_price" size="4"
         td= total_price
         td= input type="text" valueBinding="unit_cost" size="4"
         td= total_cost
@@ -38,8 +39,8 @@ table.prices
       td
       td= quantity
       td
+      td= total_price
       td
-      td
-      td
-      td
-      td= input type="text" valueBinding="margin" size="4"
+      td= total_cost
+      td= profit
+      td= margin
