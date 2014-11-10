@@ -1,20 +1,3 @@
 javascript:
   product_data = new window.PricingBase(#{raw @data.to_json})
 
-div.properties
-  dl#properties
-    /!/ There can be more than one property here
-    dt Colors
-    dd
-      ul.swatches
-        li.selected
-          a  href='#'
-            div Unspec
-        - for color in @colors
-          li  data-property=color[:id]
-            a href='#'
-              = image_tag("/gildan/Gildan_#{color[:name].gsub(' ','')}.gif")
-              span class=(@light_colors.include?(color[:name]) ? 'dark' : nil) = color[:name]
-
-
-hr

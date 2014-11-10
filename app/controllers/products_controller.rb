@@ -5,8 +5,9 @@ class ProductsController < ApplicationController
     @colors = %w(Ash Black Cardinal\ Red Carolina\ Blue Charcoal Dark\ Chocolate Dark\ Heather Forest\ Green Indigo\ Blue Light\ Blue Maroon Natural Navy Orange Prairie\ Dust Purple Red Royal Sand Sport\ Grey White)
     colors_clearance = %w(Yellow\ Haze Kiwi Prairie\ Dust)
     @colors += colors_clearance
-    @colors = @colors.map { |c| { id: prop_id += 1, name: c } }
     @light_colors = %w(Ash Carolina\ Blue Light\ Blue Light\ Pink Natural Orange Safety\ Green Safety\ Orange Sport\ Grey White Prairie\ Dust Yellow\ Haze Sand)
+    @colors = @colors.map { |c| { id: prop_id += 1, name: c, image: "/gildan/Gildan_#{c.gsub(' ','')}.gif", image_tint: @light_colors.include?(c) ? 'light' : 'dark' } }
+
     # basis, fixed, unit, per decoration
     @costs = [
         # All
@@ -46,10 +47,10 @@ class ProductsController < ApplicationController
     ]
 
     @data = {
-        properties: {
-            colors: @colors,
-            sizes: @sizes,
-        },
+        properties: [
+            { name: 'colors', list: @colors }
+        ],
+        variant_group: { name: 'sizes', list: @sizes },
         locations: locations,
         techniques: techniques,
         decorations: decorations,

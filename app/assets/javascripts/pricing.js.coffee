@@ -12,8 +12,8 @@ class window.PricingBase
   _costStack: (predicate) -> @_selectStack(@data.costs, predicate)
   _priceStack: (predicate) -> @_selectStack(@data.costs.concat(@data.prices), predicate)
 
-  variantGroups: (predicate, property) ->
-    list = _.clone(@data.properties[property])
+  variantGroups: (predicate) ->
+    list = _.clone(@data.variant_group.list)
     result = []
     until _.isEmpty(list)
       stack = @_priceStack(predicate.concat(list[0].id))

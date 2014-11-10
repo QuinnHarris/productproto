@@ -1,0 +1,16 @@
+= testprop
+
+dl#properties
+  each
+    dt= name
+    dd
+      ul.swatches
+        li.selected
+          a href='#'
+            div Unspec
+        each opt in list
+          li
+            a href='#'
+              if opt.image
+                img src=opt.image
+              span class=opt.image_tint = opt.name

@@ -1,5 +1,5 @@
-h2 Products Begin
+render "properties" properties
+
+hr
 
 = outlet "groups"
-
-h2 Products End

@@ -1,10 +1,13 @@
+Ink.Variants = Ember.ArrayController.extend
+  itemController: 'variantGroups'
+
 Ink.VariantGroupsController = Ember.ArrayController.extend
   itemController: 'variantGroup'
   properties: [9]
   # Use arrangedContent to allow actual content to depend on properties
   # Regular model is not used
   arrangedContent: Ember.computed 'properties', ->
-    [[ { id: 1, name: '?' } ]].concat product_data.variantGroups(@get('properties'), 'sizes')
+    [[ { id: 1, name: '?' } ]].concat product_data.variantGroups(@get('properties'))
 
   quantity: Ember.computed '@each.quantity', ->
     @get('@each.quantity').reduce ((a, b) -> a + b), 0
