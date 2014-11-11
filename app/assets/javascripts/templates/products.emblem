@@ -1,5 +1,7 @@
-render "properties" properties
+= outlet "properties"
 
 hr
+
+= propertiesValue
 
 = outlet "groups"

@@ -1,16 +1,13 @@
-= testprop
-
 dl#properties
   each
     dt= name
     dd
       ul.swatches
-        li.selected
-          a href='#'
-            div Unspec
-        each opt in list
-          li
-            a href='#'
+        each opt in fullList itemController="option"
+          li class=opt.selected
+            a href='#' click="select"
               if opt.image
                 img src=opt.image
-              span class=opt.image_tint = opt.name
+                span class=opt.image_tint = opt.name
+              else
+                div= opt.name

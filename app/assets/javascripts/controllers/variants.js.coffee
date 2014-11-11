@@ -9,17 +9,10 @@ Ink.VariantGroupsController = Ember.ArrayController.extend
   arrangedContent: Ember.computed 'properties', ->
     [[ { id: 1, name: '?' } ]].concat product_data.variantGroups(@get('properties'))
 
-  quantity: Ember.computed '@each.quantity', ->
-    @get('@each.quantity').reduce ((a, b) -> a + b), 0
-
-  total_price: Ember.computed '@each.total_price', ->
-    @get('@each.total_price').reduce ((a, b) -> a + b), 0
-
-  total_cost: Ember.computed '@each.total_cost', ->
-    @get('@each.total_cost').reduce ((a, b) -> a + b), 0
-
-  profit: Ember.computed '@each.profit', ->
-    @get('@each.profit').reduce ((a, b) -> a + b), 0
+  quantity:    Ember.computed.sum '@each.quantity'
+  total_price: Ember.computed.sum '@each.total_price'
+  total_cost:  Ember.computed.sum '@each.total_cost'
+  profit:      Ember.computed.sum '@each.profit'
 
   margin: Ember.computed 'total_price', 'total_cost', (key, value) ->
     unit_price = @get('total_price')
