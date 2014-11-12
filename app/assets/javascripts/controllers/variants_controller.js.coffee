@@ -1,11 +1,34 @@
 Ink.VariantsController = Ember.ArrayController.extend
   itemController: 'variantGroups'
 
+  #quantity: Ember.computed.sum '@each.quantity'
+  quantity: Ember.computed '@each.quantity', ->
+    @get('@each.quantity').reduce ((sum, v) -> sum + v), 0
+  total_price: Ember.computed.sum '@each.total_price'
+  total_cost: Ember.computed.sum '@each.total_cost'
+  profit: Ember.computed.sum '@each.profit'
+
+  margin: Ember.computed 'total_price', 'total_cost', (key, value) ->
+    unit_price = @get('total_price')
+    return '' unless unit_price
+    ((unit_price - @get('total_cost')) * 100.0 / unit_price).toFixed(1)
+
+  propertiesValue: Ember.computed.alias('propertiesController.value')
+
+  propertiesValueChanged: Ember.observer 'propertiesController.value', ->
+    if @get('model.length') > 0
+      @.model[0].set('properties', @get('propertiesValue'))
+
+  optionTypes: Ember.computed ->
+    p.name for p in product_data.data.properties
+
+  actions:
+    addGroup: ->
+      @model.unshiftObject(Ember.Object.create(properties: [null]))
+
+# Can't use ArrayController because contents depends on properties input
 Ink.VariantGroupsController = Ember.ObjectController.extend
-  itemController: 'variantGroup'
-  properties: [null]
-  # Use arrangedContent to allow actual content to depend on properties
-  # Regular model is not used
+  #properties: [null]
   groups: Ember.computed 'properties', ->
     for m in [[ { id: 1, name: '?' } ]].concat product_data.variantGroups(@get('properties'))
       Ink.VariantGroupController.create
@@ -13,6 +36,15 @@ Ink.VariantGroupsController = Ember.ObjectController.extend
         parentController: @,
         container: @get('container'),
         model: m
+
+  onlyOne: Ember.computed 'parentController.@each', ->
+    @get('parentController.length') == 1
+
+  options: Ember.computed 'properties', ->
+    properties = @get('properties')
+    for prop, i in product_data.data.properties
+      id = properties[i]
+      prop.list.findBy('id', id)
 
   # Why doesn't Ember.computer.sum work?
   quantity: Ember.computed 'groups.@each.quantity', ->

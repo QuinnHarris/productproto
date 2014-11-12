@@ -6,8 +6,4 @@ dl#properties
         each opt in fullList itemController="option"
           li class=opt.selected
             a href='#' click="select"
-              if opt.image
-                img src=opt.image
-                span class=opt.image_tint = opt.name
-              else
-                div= opt.name
+              = partial "option"

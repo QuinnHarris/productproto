@@ -1,6 +1,11 @@
 Ink.PropertiesController = Ember.ArrayController.extend
   itemController: 'property'
 
+  #init: ->
+  #  @_super()
+  #  @get('value')
+
+
   value: Ember.computed '@each.property', (key, value) ->
     if value
       for o, i in @
@@ -8,12 +13,6 @@ Ink.PropertiesController = Ember.ArrayController.extend
     else
       @get('@each.property').toArray()
 
-  #valueBinding: 'parentController.thatthing'
-
-  #testit: Ember.computed.alias('parentController.thatthing')
-  anotherBinding: 'parentController.thatthing'
-
-  #thatthingBinding: 'parentController.thatthing'
 
 Ink.PropertyController = Ember.ObjectController.extend
   property: null
@@ -28,3 +27,4 @@ Ink.OptionController = Ember.ObjectController.extend
   actions:
     select: ->
       @set('parentController.property', @get('id'))
+      #@get('parentController.parentController.value')

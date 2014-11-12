@@ -15,8 +15,11 @@ Ink.ProductsRoute = Ember.Route.extend
       into: 'products',
       model: model.properties
 
+    variants_controller = this.controllerFor('variants')
+    variants_controller.set('propertiesController', properties_controller)
     @render 'variants',
-      controller: 'variantGroups'
+      controller: variants_controller,
       outlet: 'groups',
-      into: 'products'
+      into: 'products',
+      model: [Ember.Object.create({properties: [null] })]
 
