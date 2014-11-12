@@ -1,0 +1,46 @@
+table.prices
+  colgroup
+    col span="5"
+    col.admin span="4"
+  thead
+    tr
+      td rowspan="2" Color
+      td rowspan="2" Variants
+      td rowspan="2" Qty
+      td colspan="2" Price
+      td colspan="2" Cost
+      td rowspan="2" Profit
+      td rowspan="2" Margin
+    tr
+      td Unit
+      td Total
+      td Unit
+      td Total
+  tbody
+    each group in groups
+      tr
+        if group.firstRow
+          td rowspan=group.parentController.groups.length
+        td
+          each sub in controller
+            label
+              = sub.name
+              = input type="number" valueBinding="sub.quantity" min=0 size="4"
+        td= group.quantity
+        td= input type="text" valueBinding="group.unit_price" size="4"
+        td= group.total_price
+        td= input type="text" valueBinding="group.unit_cost" size="4"
+        td= group.total_cost
+        td= input type="text" valueBinding="group.profit" size="4"
+        td= input type="text" valueBinding="group.margin" size="4"
+  tfoot
+    tr
+      td
+      td
+      td= quantity
+      td
+      td= total_price
+      td
+      td= total_cost
+      td= profit
+      td= margin

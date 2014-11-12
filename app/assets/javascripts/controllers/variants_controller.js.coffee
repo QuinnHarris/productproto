@@ -1,18 +1,28 @@
-Ink.Variants = Ember.ArrayController.extend
+Ink.VariantsController = Ember.ArrayController.extend
   itemController: 'variantGroups'
 
-Ink.VariantGroupsController = Ember.ArrayController.extend
+Ink.VariantGroupsController = Ember.ObjectController.extend
   itemController: 'variantGroup'
-  properties: [9]
+  properties: [null]
   # Use arrangedContent to allow actual content to depend on properties
   # Regular model is not used
-  arrangedContent: Ember.computed 'properties', ->
-    [[ { id: 1, name: '?' } ]].concat product_data.variantGroups(@get('properties'))
+  groups: Ember.computed 'properties', ->
+    for m in [[ { id: 1, name: '?' } ]].concat product_data.variantGroups(@get('properties'))
+      Ink.VariantGroupController.create
+        target: @,
+        parentController: @,
+        container: @get('container'),
+        model: m
 
-  quantity:    Ember.computed.sum '@each.quantity'
-  total_price: Ember.computed.sum '@each.total_price'
-  total_cost:  Ember.computed.sum '@each.total_cost'
-  profit:      Ember.computed.sum '@each.profit'
+  # Why doesn't Ember.computer.sum work?
+  quantity: Ember.computed 'groups.@each.quantity', ->
+    @get('groups.@each.quantity').reduce ((sum, v) -> sum + v), 0
+  total_price: Ember.computed 'groups.@each.total_price', ->
+    @get('groups.@each.total_price').reduce ((sum, v) -> sum + v), 0
+  total_cost: Ember.computed 'groups.@each.total_cost', ->
+    @get('groups.@each.total_cost').reduce ((sum, v) -> sum + v), 0
+  profit: Ember.computed 'groups.@each.profit', ->
+    @get('groups.@each.profit').reduce ((sum, v) -> sum + v), 0
 
   margin: Ember.computed 'total_price', 'total_cost', (key, value) ->
     unit_price = @get('total_price')
@@ -22,15 +32,19 @@ Ink.VariantGroupsController = Ember.ArrayController.extend
 
 Ink.VariantGroupController = Ember.ArrayController.extend
   itemController: 'variant'
+  needs: ['variantGroup']
+
+  parentProperties: Ember.computed.alias('parentController.properties')
 
   # why doesn't @first work in the template?
   firstRow: Ember.computed ->
-    @get('parentController')._subControllers[0] == this
+    @model[0].name == '?'
 
   quantity: Ember.computed '@each.quantity', ->
     @get('@each.quantity').reduce ((sum, v) -> sum + parseInt(v)), 0
 
-  parentQuantity: Ember.computed.alias('parentController.quantity')
+  #parentQuantity: Ember.computed.alias('parentController.quantity')
+  parentQuantity: 10
 
   properties: Ember.computed 'parentController.properties', ->
     @get('parentController.properties').concat([@model[0].id])
