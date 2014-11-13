@@ -8,16 +8,22 @@ table.prices {
   }
 
   tbody {
-    &:hover { background-color: #ffffe0; }
-    &.current { background-color: #ffffc0; }
+    //&:hover { background-color: #ffffe0; }
+    &.selected {
+      background-color: #ffffe0;
+
+      tr:nth-of-type(2n) {
+        background-color: #efefd0;
+      }
+    }
 
     tr td label {
-      //input { display: none; }
+      input { display: inline-block; }
       span {
         display: inline-block;
         border: thin solid grey;
         transition: height 1s;
-        height: 37px;
+        //height: 37px;
         width: 63px;
       }
     }
@@ -29,7 +35,7 @@ table.prices {
     tr {
       transition: height 1s, opacity 1s;
 
-      height: 2em;
+      //height: 2em;
       &.head { height: 0; }
       font-size: 1em;
 
@@ -68,26 +74,6 @@ table.prices {
   }
 }
 
-ul#variants {
-  list-style: none;
-
-  li {
-    &.current { background-color: #ffffe0; }
-    border: thin solid grey;
-    margin: 1em;
-
-    div.wrapper {
-      display: flex;
-      flex-flow: row;
-
-      div.prices {
-        flex: 1 1 100%;
-        justify-content: flex-end;
-      }
-    }
-  }
-}
-
 dl#properties {
   dd ul.swatches {
     list-style: none;
@@ -107,7 +93,7 @@ dl#properties {
 dl#properties dd ul.swatches li a, .swatch {
   position: relative;
 
-  div { width: 68px; height: 36px; }
+  //div { width: 68px; height: 36px; }
 
   span {
     position: absolute;

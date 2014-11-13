@@ -1,12 +1,17 @@
 Ink.VariantsController = Ember.ArrayController.extend
   itemController: 'variantGroups'
 
-  #quantity: Ember.computed.sum '@each.quantity'
+  currentIndex: 0
+
+  # Why doesn't sum or even @get .. @each work ?
   quantity: Ember.computed '@each.quantity', ->
-    @get('@each.quantity').reduce ((sum, v) -> sum + v), 0
-  total_price: Ember.computed.sum '@each.total_price'
-  total_cost: Ember.computed.sum '@each.total_cost'
-  profit: Ember.computed.sum '@each.profit'
+    @_subControllers.reduce ((sum, v) -> sum + v.get('quantity')), 0
+  total_price: Ember.computed '@each.total_price', ->
+    @_subControllers.reduce ((sum, v) -> sum + v.get('total_price')), 0
+  total_cost: Ember.computed '@each.total_price', ->
+    @_subControllers.reduce ((sum, v) -> sum + v.get('total_cost')), 0
+  profit: Ember.computed '@each.profit', ->
+    @_subControllers.reduce ((sum, v) -> sum + v.get('profit')), 0
 
   margin: Ember.computed 'total_price', 'total_cost', (key, value) ->
     unit_price = @get('total_price')
@@ -16,8 +21,14 @@ Ink.VariantsController = Ember.ArrayController.extend
   propertiesValue: Ember.computed.alias('propertiesController.value')
 
   propertiesValueChanged: Ember.observer 'propertiesController.value', ->
-    if @get('model.length') > 0
-      @.model[0].set('properties', @get('propertiesValue'))
+    return unless @get('model.length') > 0
+    value = @get('propertiesController.value')
+    if c = @_subControllers.find((c) -> Ember.compare(c.get('properties'), value) == 0)
+      @set('currentIndex', @_subControllers.indexOf(c))
+    @model[@get('currentIndex')].set('properties', value)
+
+  currentIndexChanged: Ember.observer 'currentIndex', ->
+    @set('propertiesController.value', @model[@get('currentIndex')].get('properties'))
 
   optionTypes: Ember.computed ->
     p.name for p in product_data.data.properties
@@ -36,6 +47,13 @@ Ink.VariantGroupsController = Ember.ObjectController.extend
         parentController: @,
         container: @get('container'),
         model: m
+
+  selected: Ember.computed 'parentController.currentIndex', 'parentController.@each', ->
+    @get('parentController.model').indexOf(@get('model')) == @get('parentController.currentIndex')
+
+  actions:
+    select: ->
+      @set('parentController.currentIndex', @get('parentController.model').indexOf(@get('model')))
 
   onlyOne: Ember.computed 'parentController.@each', ->
     @get('parentController.length') == 1
@@ -75,8 +93,7 @@ Ink.VariantGroupController = Ember.ArrayController.extend
   quantity: Ember.computed '@each.quantity', ->
     @get('@each.quantity').reduce ((sum, v) -> sum + parseInt(v)), 0
 
-  #parentQuantity: Ember.computed.alias('parentController.quantity')
-  parentQuantity: 10
+  parentQuantity: Ember.computed.alias('parentController.quantity')
 
   properties: Ember.computed 'parentController.properties', ->
     @get('parentController.properties').concat([@model[0].id])

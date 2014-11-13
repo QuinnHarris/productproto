@@ -8,10 +8,9 @@ Ink.PropertiesController = Ember.ArrayController.extend
 
   value: Ember.computed '@each.property', (key, value) ->
     if value
-      for o, i in @
-        o.property = value[i]
-    else
-      @get('@each.property').toArray()
+      for o, i in @_subControllers
+        o.set('property', value[i])
+    @get('@each.property').toArray()
 
 
 Ink.PropertyController = Ember.ObjectController.extend

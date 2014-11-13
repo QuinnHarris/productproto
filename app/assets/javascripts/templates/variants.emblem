@@ -18,7 +18,7 @@ table.prices
       td Unit
       td Total
   each blk in controller
-    tbody
+    tbody class=blk.selected click="select"
       each group in blk.groups
         tr
           if group.firstRow
