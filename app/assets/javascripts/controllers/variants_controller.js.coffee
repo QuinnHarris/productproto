@@ -24,8 +24,10 @@ Ink.VariantsController = Ember.ArrayController.extend
     return unless @get('model.length') > 0
     value = @get('propertiesController.value')
     if c = @_subControllers.find((c) -> Ember.compare(c.get('properties'), value) == 0)
-      @set('currentIndex', @_subControllers.indexOf(c))
-    @model[@get('currentIndex')].set('properties', value)
+      idx = @_subControllers.indexOf(c)
+      @set('currentIndex', idx)
+    else
+      @model[@get('currentIndex')].set('properties', value)
 
   currentIndexChanged: Ember.observer 'currentIndex', ->
     @set('propertiesController.value', @model[@get('currentIndex')].get('properties'))
@@ -35,7 +37,13 @@ Ink.VariantsController = Ember.ArrayController.extend
 
   actions:
     addGroup: ->
-      @model.unshiftObject(Ember.Object.create(properties: [null]))
+      controllers = @_subControllers
+      next_prop = for list, i in @get('propertiesController.availableIds')
+        list.find (id) ->
+          !controllers.find (c) -> c.get('properties')[i] == id
+
+      @model.unshiftObject(Ember.Object.create(properties: next_prop))
+      @set('propertiesController.value', next_prop)
 
 # Can't use ArrayController because contents depends on properties input
 Ink.VariantGroupsController = Ember.ObjectController.extend

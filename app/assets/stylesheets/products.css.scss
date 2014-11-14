@@ -3,6 +3,8 @@
 }
 
 table.prices {
+  table-layout: fixed;
+
   thead td {
     text-align: center;
   }

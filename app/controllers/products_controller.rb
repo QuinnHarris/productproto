@@ -46,6 +46,14 @@ class ProductsController < ApplicationController
         { predicate: [meta[0][:id]], priority: 20, op: :add, breaks: [{ fixed: 20.0 }] }
     ]
 
+    @images = @colors.map do |c|
+      %w(Flat Model).map do |name|
+        { predicate: [c[:id]],
+          src: "/gildan/G2400_#{c[:name].gsub(' ', '').capitalize}_#{name}_Front.jpg"
+        }
+      end
+    end.flatten
+
     @data = {
         properties: [
             { name: 'colors', list: @colors }
@@ -57,7 +65,9 @@ class ProductsController < ApplicationController
 
         costs: @costs,
         prices: @prices,
-        inventory: @inventory
+        inventory: @inventory,
+
+        images: @images
     }
   end
 end

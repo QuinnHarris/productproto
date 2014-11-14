@@ -12,6 +12,9 @@ Ink.PropertiesController = Ember.ArrayController.extend
         o.set('property', value[i])
     @get('@each.property').toArray()
 
+  availableIds: Ember.computed ->
+    @get('@each.fullList').map (l) -> l.mapBy('id')
+
 
 Ink.PropertyController = Ember.ObjectController.extend
   property: null

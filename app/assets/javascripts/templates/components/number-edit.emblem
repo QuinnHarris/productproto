@@ -1,0 +1,4 @@
+if edit
+  = view 'numberField' valueBinding="valueFormated" size="4" onEvent="keyPress" negative="negative" decimalPlaces="decimalPlaces"
+else
+  = valueFormated
