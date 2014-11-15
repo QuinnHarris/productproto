@@ -2,7 +2,7 @@
   //background-color: green;
 }
 
-table.prices {
+table.variants {
   table-layout: fixed;
 
   thead td {
@@ -10,40 +10,23 @@ table.prices {
   }
 
   tbody {
+    tr.none { display: none; }
+    &.selected tr { display: table-row; }
+
     //&:hover { background-color: #ffffe0; }
     &.selected {
-      background-color: #ffffe0;
+      background-color: #fffff0;
 
       tr:nth-of-type(2n) {
-        background-color: #efefd0;
+        background-color: #ffffe0;
       }
-    }
-
-    tr td label {
-      input { display: inline-block; }
-      span {
-        display: inline-block;
-        border: thin solid grey;
-        transition: height 1s;
-        //height: 37px;
-        width: 63px;
-      }
-    }
-    &.ready tr td label {
-      input { display: inline-block; }
-      span { display: none; }
     }
 
     tr {
-      transition: height 1s, opacity 1s;
-
-      //height: 2em;
-      &.head { height: 0; }
       font-size: 1em;
 
       td {
-        &.price:before { content: "$"; }
-        padding: 0 0.2rem;
+        //padding: 0 0.2rem;
         /*width: 6rem;*/
         text-align: right;
 
@@ -51,30 +34,31 @@ table.prices {
           display: inline-block;
           margin: 0 0.5em;
 
-          transition: line-height 1s;
-          line-height: 2em;
-
           input {
-            margin: 0;
-            width: 4.5em; }
-        }
-        line-height: 0;
-        padding: 0;
-      }
-
-      &.shrink {
-        height: 0;
-        opacity: 0;
-        td label {
-          line-height: 0;
-          span {
-            height: 0;
+            display: inline-block;
+            width: 4.5em;
           }
+
         }
+
+        input {
+          background: none;
+          margin: 0em;
+          padding: 0 0.5rem;
+          text-align: right;
+          box-shadow: none;
+        }
+
+        span input {
+          border: none;
+        }
+
+        padding: 0;
       }
     }
   }
 }
+
 
 dl#properties {
   dd ul.swatches {
@@ -95,7 +79,9 @@ dl#properties {
 dl#properties dd ul.swatches li a, .swatch {
   position: relative;
 
-  //div { width: 68px; height: 36px; }
+  display: inline-block;
+  width: 68px; height: 36px;
+  margin: 0 auto;
 
   span {
     position: absolute;

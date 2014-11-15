@@ -63,6 +63,9 @@ Ink.VariantGroupsController = Ember.ObjectController.extend
     select: ->
       @set('parentController.currentIndex', @get('parentController.model').indexOf(@get('model')))
 
+  rowSpan: Ember.computed 'groups', ->
+    @get('groups').length + 2
+
   onlyOne: Ember.computed 'parentController.@each', ->
     @get('parentController.length') == 1
 
@@ -71,6 +74,14 @@ Ink.VariantGroupsController = Ember.ObjectController.extend
     for prop, i in product_data.data.properties
       id = properties[i]
       prop.list.findBy('id', id)
+
+  imageSrc: Ember.computed 'options', ->
+    options = @get('options')
+    return null unless options and options[0]
+    ids = options.mapBy('id')
+    img = product_data.data.images.find (img) ->
+      img.predicate.every (i) -> ids.contains(i)
+    img && img.src
 
   # Why doesn't Ember.computer.sum work?
   quantity: Ember.computed 'groups.@each.quantity', ->
@@ -95,6 +106,7 @@ Ink.VariantGroupController = Ember.ArrayController.extend
   parentProperties: Ember.computed.alias('parentController.properties')
 
   # why doesn't @first work in the template?
+  # Not used now with dummy first row
   firstRow: Ember.computed ->
     @model[0].name == '?'
 
@@ -102,6 +114,9 @@ Ink.VariantGroupController = Ember.ArrayController.extend
     @get('@each.quantity').reduce ((sum, v) -> sum + parseInt(v)), 0
 
   parentQuantity: Ember.computed.alias('parentController.quantity')
+
+  none: Ember.computed 'quantity', ->
+    @get('quantity') == 0
 
   properties: Ember.computed 'parentController.properties', ->
     @get('parentController.properties').concat([@model[0].id])

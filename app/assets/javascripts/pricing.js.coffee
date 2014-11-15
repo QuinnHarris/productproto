@@ -58,6 +58,7 @@ class window.PricingBase
     { costs: cost_basis, prices: price_basis }
 
   getPrice: (basis, quantity) ->
+    quantity = 1 if quantity == 0
     result = null
     for br in basis
       break if br.n > quantity
