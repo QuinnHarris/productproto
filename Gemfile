@@ -1,14 +1,15 @@
 source 'https://rubygems.org'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '4.1.6'
+gem 'rails', '4.1.7'
 
 # Use sequel instead of Active Record
 gem 'pg'
 gem 'sequel-rails'
 
 # Resources
-gem 'sass-rails', '~> 4.0.3'
+#gem 'sass-rails', '~> 4.0.3'
+gem 'sass'
 gem 'uglifier', '>= 1.3.0'
 gem 'coffee-rails', '~> 4.0.0'
 gem 'slim'
