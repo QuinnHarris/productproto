@@ -19,14 +19,14 @@ table.variants
   each blk in controller
     tbody class=blk.selected click="select"
       tr
-        td rowspan=blk.rowSpan
+        th rowspan=blk.rowSpan
           div.swatch
             each opt in blk.options
               = partial 'option'
           img height="110" width="100" src=blk.imageSrc
       each group in blk.groups
-        tr class=group.none
-          td
+        tr class=group.show
+          td: span
             each sub in controller
               label
                 = sub.name
@@ -37,15 +37,14 @@ table.variants
           td= number-edit valueBinding="group.total_cost" decimalPlaces=2
           td= number-edit valueBinding="group.profit" decimalPlaces=2 edit=true
           td= number-edit valueBinding="group.margin" decimalPlaces=2 edit=true
-      unless blk.onlyOne
-        tr.foot
-          th= blk.quantity
-          th
-          th= number-edit valueBinding="blk.total_price" decimalPlaces=2
-          th
-          th= number-edit valueBinding="blk.total_cost" decimalPlaces=2
-          th= number-edit valueBinding="blk.profit" decimalPlaces=2
-          th= number-edit valueBinding="blk.margin" decimalPlaces=2
+      tr{ bind-attr class=":foot blk.showFooter:show" }
+        td: span= blk.quantity
+        td
+        td= number-edit valueBinding="blk.total_price" decimalPlaces=2
+        td
+        td= number-edit valueBinding="blk.total_cost" decimalPlaces=2
+        td= number-edit valueBinding="blk.profit" decimalPlaces=2
+        td= number-edit valueBinding="blk.margin" decimalPlaces=2
   tfoot
     tr
       td

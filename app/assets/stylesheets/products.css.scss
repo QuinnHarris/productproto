@@ -10,8 +10,8 @@ table.variants {
   }
 
   tbody {
-    tr.none { display: none; }
-    &.selected tr { display: table-row; }
+    //tr.none { display: none; }
+    //&.selected tr { display: table-row; }
 
     //&:hover { background-color: #ffffe0; }
     &.selected {
@@ -22,14 +22,33 @@ table.variants {
       }
     }
 
+    // Collapse animation
+    &.selected tr td span, tr.show td span {
+      height: 1.8rem;
+      transform: scaleY(1)
+    }
+
+    tr td span, &:only-of-type tr.foot td span {
+      display: block;
+      overflow: hidden;
+      height: 0;
+      transform: scaleY(0);
+      transform-origin: 0 0;
+      transition: height 0.6s, transform 0.6s;
+    }
+
+    tr.foot td span {
+      font-weight: bold;
+    }
+
     tr {
       font-size: 1em;
 
       td {
-        //padding: 0 0.2rem;
-        /*width: 6rem;*/
+        padding: 0;
         text-align: right;
 
+        // Quantity Labels
         label {
           display: inline-block;
           margin: 0 0.5em;
@@ -38,7 +57,6 @@ table.variants {
             display: inline-block;
             width: 4.5em;
           }
-
         }
 
         input {
@@ -47,13 +65,12 @@ table.variants {
           padding: 0 0.5rem;
           text-align: right;
           box-shadow: none;
+          height: 1.8rem;
         }
 
-        span input {
+        input[type="text"] {
           border: none;
         }
-
-        padding: 0;
       }
     }
   }

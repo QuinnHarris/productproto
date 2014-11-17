@@ -66,8 +66,8 @@ Ink.VariantGroupsController = Ember.ObjectController.extend
   rowSpan: Ember.computed 'groups', ->
     @get('groups').length + 2
 
-  onlyOne: Ember.computed 'parentController.@each', ->
-    @get('parentController.length') == 1
+  showFooter: Ember.computed 'groups.@each.quantity', ->
+    @get('groups.@each.quantity').filter((v) -> v > 0).length > 1
 
   options: Ember.computed 'properties', ->
     properties = @get('properties')
@@ -115,8 +115,8 @@ Ink.VariantGroupController = Ember.ArrayController.extend
 
   parentQuantity: Ember.computed.alias('parentController.quantity')
 
-  none: Ember.computed 'quantity', ->
-    @get('quantity') == 0
+  show: Ember.computed 'quantity', ->
+    @get('quantity') != 0
 
   properties: Ember.computed 'parentController.properties', ->
     @get('parentController.properties').concat([@model[0].id])
