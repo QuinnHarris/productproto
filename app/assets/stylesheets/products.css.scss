@@ -23,13 +23,13 @@ table.variants {
     }
 
     // Collapse animation
-    &.selected tr td span, tr.show td span {
+    &.selected tr td div, tr.show td div {
       height: 1.8rem;
       transform: scaleY(1)
     }
 
-    tr td span, &:only-of-type tr.foot td span {
-      display: block;
+    tr td div, &:only-of-type tr.foot td div {
+      line-height: 1.8rem; /* Kludge to vertically align text */
       overflow: hidden;
       height: 0;
       transform: scaleY(0);
@@ -59,7 +59,7 @@ table.variants {
           }
         }
 
-        input {
+        input, span {
           background: none;
           margin: 0em;
           padding: 0 0.5rem;
@@ -74,6 +74,11 @@ table.variants {
       }
     }
   }
+
+  tfoot td {
+    text-align: right;
+    padding: 0.5rem;
+  }
 }
 
 
@@ -82,10 +87,11 @@ dl#properties {
     list-style: none;
 
     li {
+      cursor: pointer;
       display: inline-block;
       margin: 2px;
 
-      border: thin solid white;
+      border: 2px solid white;
       &:hover { border: 2px solid #F99; }
       &.included { border: 2px solid yellow; }
       &.selected { border: 2px solid red; }
@@ -93,18 +99,22 @@ dl#properties {
   }
 }
 
-dl#properties dd ul.swatches li a, .swatch {
+dl#properties dd ul.swatches li, .swatch {
   position: relative;
 
   display: inline-block;
-  width: 68px; height: 36px;
+  //
   margin: 0 auto;
+
+  div {
+    width: 68px; height: 36px;
+  }
 
   span {
     position: absolute;
     left: 0;
     right: 0;
-    padding: 1px 3px 1px 3px;
+    padding: 1px 3px;
     text-align: center;
     width: 100%;
     font-size: 14px;

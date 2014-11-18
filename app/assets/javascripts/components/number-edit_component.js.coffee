@@ -10,7 +10,7 @@ Ink.NumberFieldView = Ember.TextField.extend
       decimalPlaces: @get('decimalPlaces')
 
 Ink.NumberEditComponent = Ember.Component.extend
-  tagName: 'span'
+  tagName: 'div'
 
   valueFormated: Ember.computed 'value', (key, value) ->
     decimalPlaces = @get('decimalPlaces')

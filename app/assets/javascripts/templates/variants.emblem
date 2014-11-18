@@ -23,10 +23,10 @@ table.variants
           div.swatch
             each opt in blk.options
               = partial 'option'
-          img height="110" width="100" src=blk.imageSrc
+          //img height="110" width="100" src=blk.imageSrc
       each group in blk.groups
         tr class=group.show
-          td: span
+          td: div
             each sub in controller
               label
                 = sub.name
@@ -38,7 +38,7 @@ table.variants
           td= number-edit valueBinding="group.profit" decimalPlaces=2 edit=true
           td= number-edit valueBinding="group.margin" decimalPlaces=2 edit=true
       tr{ bind-attr class=":foot blk.showFooter:show" }
-        td: span= blk.quantity
+        td: div: span= blk.quantity
         td
         td= number-edit valueBinding="blk.total_price" decimalPlaces=2
         td

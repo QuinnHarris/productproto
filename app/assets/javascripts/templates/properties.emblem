@@ -4,6 +4,5 @@ dl#properties
     dd
       ul.swatches
         each opt in fullList itemController="option"
-          li class=opt.selected
-            a href='#' click="select"
-              = partial "option"
+          li class=opt.selected click="select"
+            = partial "option"
