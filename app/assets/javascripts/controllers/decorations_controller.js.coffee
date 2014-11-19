@@ -1,0 +1,1 @@
+Ink.DecorationsController = Ember.ObjectController.extend()

@@ -2,7 +2,4 @@ dl#properties
   each
     dt= name
     dd
-      ul.swatches
-        each opt in fullList itemController="option"
-          li class=opt.selected click="select"
-            = partial "option"
+      = option-list items=fullList class="swatches" selectedId=property

@@ -82,24 +82,23 @@ table.variants {
 }
 
 
-dl#properties {
-  dd ul.swatches {
-    list-style: none;
+ul.swatches {
+  list-style: none;
 
-    li {
-      cursor: pointer;
-      display: inline-block;
-      margin: 2px;
+  li {
+    cursor: pointer;
+    display: inline-block;
+    margin: 2px;
 
-      border: 2px solid white;
-      &:hover { border: 2px solid #F99; }
-      &.included { border: 2px solid yellow; }
-      &.selected { border: 2px solid red; }
-    }
+    border: 2px solid white;
+    &:hover { border: 2px solid #F99; }
+    &.included { border: 2px solid yellow; }
+    &.selected { border: 2px solid red; }
   }
 }
 
-dl#properties dd ul.swatches li, .swatch {
+
+ul.swatches li, .swatch {
   position: relative;
 
   display: inline-block;

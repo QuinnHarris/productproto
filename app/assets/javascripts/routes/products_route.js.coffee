@@ -23,3 +23,8 @@ Ink.ProductsRoute = Ember.Route.extend
       into: 'products',
       model: Ember.A([Ember.Object.create({properties: [null] })])
 
+
+    @render 'decorations',
+      outlet: 'decorations',
+      into: 'products',
+      model: model

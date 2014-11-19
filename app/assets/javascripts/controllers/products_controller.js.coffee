@@ -7,3 +7,6 @@ Ink.ProductsController = Ember.ObjectController.extend
 
   variants: Ember.computed ->
     [ { properties: [9] } ]
+
+  theList: Ember.computed ->
+    [{ id: null, name: 'Unspec' }].concat @get('properties')[0].list

@@ -15,7 +15,7 @@ Ink.NumberEditComponent = Ember.Component.extend
   valueFormated: Ember.computed 'value', (key, value) ->
     decimalPlaces = @get('decimalPlaces')
     if value
-      value = value.toFixed(decimalPlaces) unless decimalPlaces == -1
+      value = parseFloat(value).toFixed(decimalPlaces) unless decimalPlaces == -1
       @set('value', value)
     else
       value = parseFloat(@get('value'))
