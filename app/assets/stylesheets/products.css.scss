@@ -82,7 +82,7 @@ table.variants {
 }
 
 
-ul.swatches {
+ul.options {
   list-style: none;
 
   li {
@@ -100,9 +100,6 @@ ul.swatches {
 
 ul.swatches li, .swatch {
   position: relative;
-
-  display: inline-block;
-  //
   margin: 0 auto;
 
   div {

@@ -1,21 +1,18 @@
 table.variants
-  colgroup
-    col span="5"
-    col.admin span="4"
   thead
     tr
       each name in optionTypes
         td rowspan="2" = name
       td rowspan="2" Quantity
       td colspan="2" Price
-      td colspan="2" Cost
-      td rowspan="2" Profit
-      td rowspan="2" Margin
+      td.adv colspan="2" Cost
+      td.adv rowspan="2" Profit
+      td.adv rowspan="2" Margin
     tr
       td Unit
       td Total
-      td Unit
-      td Total
+      td.adv Unit
+      td.adv Total
   each blk in controller
     tbody class=blk.selected click="select"
       tr
@@ -33,28 +30,28 @@ table.variants
                 = input type="number" valueBinding="sub.quantity" min=0 size="4"
           td= number-edit valueBinding="group.unit_price" negative=false decimalPlaces=2 edit=true
           td= number-edit valueBinding="group.total_price" decimalPlaces=2
-          td= number-edit valueBinding="group.unit_cost" negative=false decimalPlaces=2 edit=true
-          td= number-edit valueBinding="group.total_cost" decimalPlaces=2
-          td= number-edit valueBinding="group.profit" decimalPlaces=2 edit=true
-          td= number-edit valueBinding="group.margin" decimalPlaces=2 edit=true
+          td.adv= number-edit valueBinding="group.unit_cost" negative=false decimalPlaces=2 edit=true
+          td.adv= number-edit valueBinding="group.total_cost" decimalPlaces=2
+          td.adv= number-edit valueBinding="group.profit" decimalPlaces=2 edit=true
+          td.adv= number-edit valueBinding="group.margin" decimalPlaces=2 edit=true
       tr{ bind-attr class=":foot blk.showFooter:show" }
         td: div: span= blk.quantity
         td
         td= number-edit valueBinding="blk.total_price" decimalPlaces=2
-        td
-        td= number-edit valueBinding="blk.total_cost" decimalPlaces=2
-        td= number-edit valueBinding="blk.profit" decimalPlaces=2
-        td= number-edit valueBinding="blk.margin" decimalPlaces=2
+        td.adv
+        td.adv= number-edit valueBinding="blk.total_cost" decimalPlaces=2
+        td.adv= number-edit valueBinding="blk.profit" decimalPlaces=2
+        td.adv= number-edit valueBinding="blk.margin" decimalPlaces=2
   tfoot
     tr
       td
       td= quantity
       td
       td= number-edit valueBinding="total_price" decimalPlaces=2
-      td
-      td= number-edit valueBinding="total_cost" decimalPlaces=2
-      td= number-edit valueBinding="profit" decimalPlaces=2
-      td= number-edit valueBinding="margin" decimalPlaces=2
+      td.adv
+      td.adv= number-edit valueBinding="total_cost" decimalPlaces=2
+      td.adv= number-edit valueBinding="profit" decimalPlaces=2
+      td.adv= number-edit valueBinding="margin" decimalPlaces=2
 
 a href="#" click="addGroup" Add Group
 br

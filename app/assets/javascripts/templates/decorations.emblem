@@ -1,1 +1,6 @@
-= option-list items=techniques class="techniques"
+.decorations
+  = option-list items=techniques class="techniques" selectedId=techniqueId selected=technique
+  = option-list items=currentLocations class="locations"
+
+  if useColors
+    = render 'decorationColors'

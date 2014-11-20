@@ -1,6 +1,8 @@
 Ink.OptionListComponent = Ember.Component.extend
   tagName: 'ul'
 
+  classNames: ['options']
+
   selected: undefined
 
   selectedId: Ember.computed 'selected', (key, value) ->

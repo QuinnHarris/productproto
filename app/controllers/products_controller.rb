@@ -34,8 +34,10 @@ class ProductsController < ApplicationController
 
     meta = %w(Color\ Match).map { |n| { id: prop_id += 1, name: n } }
     locations = %w(Front Back).map { |n| { id: prop_id += 1, name: n } }
-    techniques = %w(Screen\ Print Photo\ Print None).map { |n| { id: prop_id += 1, name: n } }
+    techniques = %w(Screen\ Print Photo\ Print).map { |n| { id: prop_id += 1, name: n } }
+    techniques[0][:class] = 'color'
     decorations = locations.map { |loc| techniques.map { |tech| { id: prop_id += 1, location: loc[:id], technique: tech[:id] } } }.flatten
+    techniques += %w(None).map { |n| { id: prop_id += 1, name: n } }
 
     @prices = [
         { priority: 10, op: :mult, breaks: [{ n: 1, v: 1.3 }] },
