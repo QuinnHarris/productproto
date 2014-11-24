@@ -12,13 +12,31 @@ Ink.NumberFieldView = Ember.TextField.extend
 Ink.NumberEditComponent = Ember.Component.extend
   tagName: 'div'
 
-  valueFormated: Ember.computed 'value', (key, value) ->
+  classNameBindings: ['changed']
+
+  changed: Ember.computed 'value', ->
+    return false unless @get('valueDefault')?
+    @get('value')?
+
+  valueFormated: Ember.computed 'value', 'valueDefault', (key, value) ->
     decimalPlaces = @get('decimalPlaces')
     if value
-      value = parseFloat(value).toFixed(decimalPlaces) unless decimalPlaces == -1
-      @set('value', value)
+      fvalue = parseFloat(value)
+      valueDefault = @get('valueDefault')
+      if fvalue == valueDefault
+        fvalue = null
+      else
+        fvalue = fvalue.toFixed(decimalPlaces) unless decimalPlaces == -1
+
+      @set('value', fvalue)
+      value
     else
-      value = parseFloat(@get('value'))
+      value = @get('value')
+      value = @get('valueDefault') unless value?
+      value = parseFloat(value)
       return "" if isNaN(value)
       return value.toFixed(decimalPlaces) unless decimalPlaces == -1
       value
+
+  focusOut: ->
+    @set('valueFormated', @get('value'))

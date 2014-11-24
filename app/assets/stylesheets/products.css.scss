@@ -48,6 +48,10 @@ table.variants {
         padding: 0;
         text-align: right;
 
+        div.changed {
+          background-color: #FCC;
+        }
+
         // Quantity Labels
         label {
           display: inline-block;

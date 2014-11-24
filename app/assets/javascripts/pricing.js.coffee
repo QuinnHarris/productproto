@@ -65,22 +65,3 @@ class window.PricingBase
       result = br.v
     result
 
-
-class window.PricingInstance extends window.PricingBase
-  constructor: (@data) ->
-   @variants = []
-
-  setVariantQuantity: (pred, qty) ->
-    pred = pred.sort()
-    elem = _(@variants).find (elem) ->
-      _.isEqual(elem.predicate, pred)
-    if elem
-      elem.quantity = qty
-    else
-      @variants.push({ predicate: pred, quantity: qty })
-
-  getQuantity: (predicate = [], exact = false) ->
-    _(@variants).filter((elem) ->
-      _.difference(predicate, elem.predicate).length == 0 &&
-      (!exact || predicate.length == elem.predicate.length)
-    ).reduce(((sum, elem) -> sum + elem.quantity), 0)

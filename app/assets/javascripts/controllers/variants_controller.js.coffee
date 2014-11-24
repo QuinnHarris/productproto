@@ -124,9 +124,13 @@ Ink.VariantGroupController = Ember.ArrayController.extend
   basis: Ember.computed 'properties', ->
     product_data.getCostPrice(@get('properties'))
 
-  unit_price: Ember.computed 'parentQuantity', 'basis', ->
+  unit_price_default: Ember.computed 'parentQuantity', 'basis', ->
     product_data.getPrice(@get('basis').prices, @get('parentQuantity'))
 
+  unit_price: Ember.computed 'unit_price_value', 'unit_price_default', ->
+    value = @get('unit_price_value')
+    value = @get('unit_price_default') unless value?
+    value
 
   total_price: Ember.computed 'quantity', 'unit_price', ->
     @get('quantity') * @get('unit_price')
