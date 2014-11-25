@@ -128,3 +128,29 @@ ul.swatches li, .swatch {
 
   img { z-index: 0; }
 }
+
+ul.colors {
+  display: inline-block;
+
+  li {
+    border: thin solid black;
+    height: 2.6em;
+    min-width: 2em;
+    padding: 0.4em;
+  }
+
+  .overlay {
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+  }
+
+  .dialog {
+    max-width: 75%;
+    position: absolute;
+    background: white;
+    border: thin solid black;
+  }
+}

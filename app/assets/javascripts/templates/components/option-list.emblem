@@ -3,4 +3,5 @@ each item in items itemView="optionListItem"
     img src=item.image
     span class=item.image_tint = item.name
   else
-    div= item.name
+    div
+      = item.name
