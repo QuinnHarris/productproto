@@ -1,17 +1,29 @@
-Ink.VariantsController = Ember.ArrayController.extend
-  itemController: 'variantGroups'
+Ink.VariantsController = Ember.Controller.extend
+  #itemController: 'variantGroups'
 
-  currentIndex: 0
+  createBlock: (properties) ->
+    Ink.VariantGroupsController.create(
+      target: @,
+      parentController: @,
+      container: @get('container'),
+      properties: properties )
+
+  initGroups: (->
+    current = @createBlock([null])
+
+    @set 'blocks', Ember.ArrayProxy.create(content: [current] )
+    @set 'current', current
+  ).on('init')
 
   # Why doesn't sum or even @get .. @each work ?
-  quantity: Ember.computed '@each.quantity', ->
-    @_subControllers.reduce ((sum, v) -> sum + v.get('quantity')), 0
-  total_price: Ember.computed '@each.total_price', ->
-    @_subControllers.reduce ((sum, v) -> sum + v.get('total_price')), 0
-  total_cost: Ember.computed '@each.total_price', ->
-    @_subControllers.reduce ((sum, v) -> sum + v.get('total_cost')), 0
-  profit: Ember.computed '@each.profit', ->
-    @_subControllers.reduce ((sum, v) -> sum + v.get('profit')), 0
+  quantity: Ember.computed 'blocks.@each.quantity', ->
+    @get('blocks').reduce ((sum, v) -> sum + v.get('quantity')), 0
+  total_price: Ember.computed 'blocks.@each.total_price', ->
+    @get('blocks').reduce ((sum, v) -> sum + v.get('total_price')), 0
+  total_cost: Ember.computed 'blocks.@each.total_cost', ->
+    @get('blocks').reduce ((sum, v) -> sum + v.get('total_cost')), 0
+  profit: Ember.computed 'blocks.@each.profit', ->
+    @get('blocks').reduce ((sum, v) -> sum + v), 0
 
   margin: Ember.computed 'total_price', 'total_cost', (key, value) ->
     unit_price = @get('total_price')
@@ -21,50 +33,51 @@ Ink.VariantsController = Ember.ArrayController.extend
   propertiesValue: Ember.computed.alias('propertiesController.value')
 
   propertiesValueChanged: Ember.observer 'propertiesController.value', ->
-    return unless @get('model.length') > 0
     value = @get('propertiesController.value')
-    if c = @_subControllers.find((c) -> Ember.compare(c.get('properties'), value) == 0)
-      idx = @_subControllers.indexOf(c)
-      @set('currentIndex', idx)
+    if c = @get('blocks').find((c) -> Ember.compare(c.get('properties'), value) == 0)
+      @set('current', c)
     else
-      @model[@get('currentIndex')].set('properties', value)
+      @get('current').set('properties', value)
 
-  currentIndexChanged: Ember.observer 'currentIndex', ->
-    @set('propertiesController.value', @model[@get('currentIndex')].get('properties'))
+  currentChanged: Ember.observer 'current', ->
+    return unless @get('propertiesController.value')
+    @set 'propertiesController.value', @get('current.properties')
 
   optionTypes: Ember.computed ->
     p.name for p in product_data.data.properties
 
   actions:
     addGroup: ->
-      controllers = @_subControllers
+      blocks = @get('blocks')
       next_prop = for list, i in @get('propertiesController.availableIds')
         list.find (id) ->
-          !controllers.find (c) -> c.get('properties')[i] == id
+          !blocks.find (c) -> c.get('properties')[i] == id
 
-      @model.unshiftObject(Ember.Object.create(properties: next_prop))
-      @set('propertiesController.value', next_prop)
+      current = @createBlock(next_prop)
+      blocks.addObject current
+      @set('current', current)
 
 # Can't use ArrayController because contents depends on properties input
-Ink.VariantGroupsController = Ember.ObjectController.extend
-  #properties: [null]
+Ink.VariantGroupsController = Ember.Controller.extend
   groups: Ember.computed 'properties', ->
-    for m in [[ { id: 1, name: '?' } ]].concat product_data.variantGroups(@get('properties'))
-      Ink.VariantGroupController.create
-        target: @,
-        parentController: @,
-        container: @get('container'),
-        model: m
+    Ember.ArrayProxy.create(content:
+      (for m in [[ { id: 1, name: '?' } ]].concat product_data.variantGroups(@get('properties'))
+        Ink.VariantGroupController.create
+          target: @,
+          parentController: @,
+          container: @get('container'),
+          model: m
+      ) )
 
-  selected: Ember.computed 'parentController.currentIndex', 'parentController.@each', ->
-    @get('parentController.model').indexOf(@get('model')) == @get('parentController.currentIndex')
+  selected: Ember.computed 'parentController.current', ->
+    @get('parentController.current') == @
 
   actions:
     select: ->
-      @set('parentController.currentIndex', @get('parentController.model').indexOf(@get('model')))
+      @set('parentController.current', @)
 
-  rowSpan: Ember.computed 'groups', ->
-    @get('groups').length + 2
+  rowSpan: Ember.computed 'groups.@each', ->
+    @get('groups.length') + 2
 
   showFooter: Ember.computed 'groups.@each.quantity', ->
     @get('groups.@each.quantity').filter((v) -> v > 0).length > 1

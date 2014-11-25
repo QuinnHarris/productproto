@@ -21,7 +21,7 @@ Ink.ProductsRoute = Ember.Route.extend
       controller: variants_controller,
       outlet: 'groups',
       into: 'products',
-      model: Ember.A([Ember.Object.create({properties: [null] })])
+      #model: Ember.A([Ember.Object.create({properties: [null] })])
 
 
     @render 'decorations',
