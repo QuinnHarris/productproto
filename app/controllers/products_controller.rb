@@ -36,7 +36,10 @@ class ProductsController < ApplicationController
     locations = %w(Front Back).map { |n| { id: prop_id += 1, name: n } }
     techniques = %w(Screen\ Print Photo\ Print Embroidery).map { |n| { id: prop_id += 1, name: n } }
     techniques[0][:class] = 'color'
+    techniques[2].merge!( class: 'number', desc: 'stiches' )
     decorations = locations.map { |loc| techniques.map { |tech| { id: prop_id += 1, location: loc[:id], technique: tech[:id] } } }.flatten
+    locations << { id: prop_id += 1, name: 'Front Pocket' }
+    decorations << { id: prop_id += 1, location: locations.last[:id], technique: techniques.last[:id] }
     techniques += %w(None).map { |n| { id: prop_id += 1, name: n } }
 
     @prices = [

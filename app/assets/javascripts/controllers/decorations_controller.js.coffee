@@ -11,6 +11,10 @@ Ink.DecorationsController = Ember.ObjectController.extend
     return unless technique = @get('technique')
     technique.class == 'color'
 
+  useNumber: Ember.computed 'technique', ->
+    return unless technique = @get('technique')
+    technique.class == 'number'
+
 
 Ink.DecorationUnspecifiedProps = { standard_id: 0, name: 'UN', color: 'white' }
 Ink.DecorationColorsController = Ember.Controller.extend
@@ -69,3 +73,5 @@ Ink.DecorationColorController = Ember.ObjectController.extend
     close: -> @set('opened', false)
     remove: -> @get('parentController').removeColor(@get('model'))
 
+
+Ink.DecorationNumberController = Ember.Controller.extend()
