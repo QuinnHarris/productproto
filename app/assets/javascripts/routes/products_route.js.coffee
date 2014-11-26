@@ -1,11 +1,11 @@
 Ink.ProductsRoute = Ember.Route.extend
   model: ->
-    product_data.data
+    this.store.find('instance', 1)
 
   renderTemplate: (controller, model) ->
     @render 'products',
       controller: controller,
-      model: model
+      model: product_data.data
 
     properties_controller = this.controllerFor('properties')
     controller.set('propertiesController', properties_controller)
@@ -13,7 +13,7 @@ Ink.ProductsRoute = Ember.Route.extend
       controller: properties_controller,
       outlet: 'properties',
       into: 'products',
-      model: model.properties
+      model: product_data.data.properties
 
     variants_controller = this.controllerFor('variants')
     variants_controller.set('propertiesController', properties_controller)
@@ -21,10 +21,11 @@ Ink.ProductsRoute = Ember.Route.extend
       controller: variants_controller,
       outlet: 'groups',
       into: 'products',
-      #model: Ember.A([Ember.Object.create({properties: [null] })])
+      model: model,
+      product_data: product_data.data
 
 
     @render 'decorations',
       outlet: 'decorations',
       into: 'products',
-      model: model
+      model: product_data.data

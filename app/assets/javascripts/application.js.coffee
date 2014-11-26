@@ -1,6 +1,5 @@
 #= require jquery
 #= require foundation
-#= require underscore
 
 #= require handlebars
 #= require ember

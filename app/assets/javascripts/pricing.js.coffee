@@ -1,37 +1,45 @@
+Array.prototype.isEqual = (b) ->
+  return true if @ == b
+  return false if @.length != b.length
+
+  for e, i in @
+    return false unless e == b[i]
+  return true
+
 class window.PricingBase
   constructor: (@data) ->
   _selectStack: (list, preds) ->
-    _.sortBy(
-      _.filter(list, (elem) ->
-        _.every(elem.predicate, (set) ->
-          _.intersection(_.flatten([set]), preds).length > 0
-        )
-      ),
-      (elem) -> elem.priority)
+    list.filter((elem) ->
+      Em.makeArray(elem.predicate).every (set) ->
+        Em.makeArray(set).find (e) -> preds.contains(e)
+    ).sortBy('priority')
 
   _costStack: (predicate) -> @_selectStack(@data.costs, predicate)
   _priceStack: (predicate) -> @_selectStack(@data.costs.concat(@data.prices), predicate)
 
   variantGroups: (predicate) ->
-    list = _.clone(@data.variant_group.list)
+    list = Em.copy(@data.variant_group.list)
     result = []
-    until _.isEmpty(list)
+    until Em.isEmpty(list)
       stack = @_priceStack(predicate.concat(list[0].id))
       sub_list = [list.shift()]
-      until _.isEmpty(list) ||
-            !_.isEqual(stack, @_priceStack(predicate.concat(list[0].id)))
+      until Em.isEmpty(list) ||
+            !Em.isEqual(stack, @_priceStack(predicate.concat(list[0].id)))
         sub_list.push(list.shift())
       result.push(sub_list)
     return result
 
   _combineBreaks: (meta_list, func) ->
-    meta_list = (_.clone(l) for l in meta_list)
+    meta_list = (Em.copy(l) for l in meta_list)
 
-    min = _.chain(meta_list).map((l) -> l[0].n).max().value()
-    qtys = _.chain(meta_list).map((l) -> _.pluck(l, 'n')).flatten().compact()
-            .unique().sort().filter((v) -> v >= min).value()
+    min = meta_list.reduce(((m, l) -> Math.max(m, l[0].n)), 0)
 
-    for qty in qtys
+    qtys = []
+    for m in meta_list
+      for l in m
+        qtys.push l.n if l.n >= min
+
+    for qty in qtys.uniq().sort()
       for list in meta_list
         list.shift() if list[1] && list[1].n == qty
 
@@ -40,7 +48,7 @@ class window.PricingBase
   _applyStack: (list, predicate, cost_basis = []) ->
     basis = cost_basis
     for elem in @_selectStack(list, predicate)
-      meta_list = _.compact([basis, elem.breaks, cost_basis])
+      meta_list = [basis, elem.breaks, cost_basis].compact()
       basis = switch elem.op
         when 'add'
           @_combineBreaks meta_list, (a, b) -> a + b
