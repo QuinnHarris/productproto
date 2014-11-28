@@ -8,16 +8,13 @@ Ink.VariantsController = Ember.Controller.extend
       container: @get('container'),
       properties: properties )
 
-  initGroups: (->
-    #current = @createBlock([null])
-
+  initBlocks: (->
     @set 'blocks', Ember.ArrayProxy.create(content: [])
-    #@set 'current', current
   ).on('init')
 
   # Can this be initiated before any other computed properties?
   # Init runs before any properties are set
-  initBlocks: Em.observer 'product_instance', ->
+  setBlocks: Em.observer 'product_instance', ->
     pd = @get('product_data')
     pi = @get('product_instance')
     blocks = @get('blocks')
@@ -97,15 +94,30 @@ Ink.VariantsController = Ember.Controller.extend
 
 # Can't use ArrayController because contents depends on properties input
 Ink.VariantGroupsController = Ember.Controller.extend
-  groups: Ember.computed 'properties', ->
-    Ember.ArrayProxy.create(content:
-      (for m in [[ { id: 1, name: '?' } ]].concat product_data.variantGroups(@get('properties'))
+  nullGroup: [{ id: 1, name: '?' }]
+  setGroups: (->
+    unless groups = @get('groups')
+      groups = Ember.ArrayProxy.create(content: [])
+      @set 'groups', groups
+
+    expected = [@get('nullGroup')].concat product_data.variantGroups(@get('properties'))
+
+    if expected.length > groups.length
+      groups.removeAt(expected.length, groups.length-expected.length)
+
+    groups.forEach (g) ->
+      exp = expected.shift()
+      g.set('model', exp) unless g.get('model') == exp
+
+    for m in expected
+      groups.addObject(
         Ink.VariantGroupController.create
           target: @,
           parentController: @,
           container: @get('container'),
           model: m
-      ) )
+      )
+  ).observes('properties').on('init')
 
   selected: Ember.computed 'parentController.current', ->
     @get('parentController.current') == @
