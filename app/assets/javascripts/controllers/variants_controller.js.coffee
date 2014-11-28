@@ -64,6 +64,7 @@ Ink.VariantsController = Ember.Controller.extend
 
       @get('variants').forEach (v) ->
         ids = v.get('property_ids')
+        ids.push(null) until ids.length >= prev.length + 1
         if prev.every((id) -> ids.contains(id))
           ids = ids.map (id) ->
             i = prev.indexOf(id)
@@ -71,7 +72,7 @@ Ink.VariantsController = Ember.Controller.extend
               id
             else
               value[i]
-          v.set('property_ids', ids)
+          v.set('property_ids', ids.compact())
           v.save()
 
       @get('current').set('properties', value)
