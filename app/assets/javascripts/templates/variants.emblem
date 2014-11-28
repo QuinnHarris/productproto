@@ -30,7 +30,7 @@ table.variants
                 = input type="number" valueBinding="sub.quantity" min=0 size="4"
           td= number-edit valueBinding="group.unit_price_value" valueDefaultBinding="group.unit_price_default" negative=false decimalPlaces=2 edit=true
           td= number-edit valueBinding="group.total_price" decimalPlaces=2
-          td.adv= number-edit valueBinding="group.unit_cost" negative=false decimalPlaces=2 edit=true
+          td.adv= number-edit valueBinding="group.unit_cost_value" valueDefaultBinding="group.unit_cost_default" negative=false decimalPlaces=2 edit=true
           td.adv= number-edit valueBinding="group.total_cost" decimalPlaces=2
           td.adv= number-edit valueBinding="group.profit" decimalPlaces=2 edit=true
           td.adv= number-edit valueBinding="group.margin" decimalPlaces=2 edit=true
