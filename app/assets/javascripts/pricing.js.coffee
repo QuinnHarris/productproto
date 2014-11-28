@@ -4,10 +4,17 @@ Array.prototype.isEqual = (b) ->
 
   for e, i in @
     return false unless e == b[i]
-  return true
+  true
 
 class window.PricingBase
   constructor: (@data) ->
+    @properties_map = []
+    for prop in @data.properties
+      map = new Ember.Map()
+      for l in prop.list
+        map.set(l.id, l)
+      @properties_map.push(map)
+
   _selectStack: (list, preds) ->
     list.filter((elem) ->
       Em.makeArray(elem.predicate).every (set) ->
@@ -28,6 +35,11 @@ class window.PricingBase
         sub_list.push(list.shift())
       result.push(sub_list)
     return result
+
+  propertyFromPredicate: (predicate) ->
+    for prop in @properties_map
+      predicate.find (p) -> prop.has(p)
+
 
   _combineBreaks: (meta_list, func) ->
     meta_list = (Em.copy(l) for l in meta_list)

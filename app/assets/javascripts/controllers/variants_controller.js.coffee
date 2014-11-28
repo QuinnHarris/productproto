@@ -9,11 +9,33 @@ Ink.VariantsController = Ember.Controller.extend
       properties: properties )
 
   initGroups: (->
-    current = @createBlock([null])
+    #current = @createBlock([null])
 
-    @set 'blocks', Ember.ArrayProxy.create(content: [current] )
-    @set 'current', current
+    @set 'blocks', Ember.ArrayProxy.create(content: [])
+    #@set 'current', current
   ).on('init')
+
+  # Can this be initiated before any other computed properties?
+  # Init runs before any properties are set
+  initBlocks: Em.observer 'product_instance', ->
+    pd = @get('product_data')
+    pi = @get('product_instance')
+    blocks = @get('blocks')
+
+    added = []
+    pi.get('variants').forEach (v) =>
+      pred = v.get('property_ids')
+      prop = pd.propertyFromPredicate pred
+      unless added.find((p) -> Em.isEqual(p, prop))
+        added.push prop
+        blocks.addObject @createBlock(prop)
+
+    if added.length == 0
+      blocks.addObject @createBlock [null]
+
+    @set 'current', blocks.get('firstObject')
+
+  variants: Ember.computed.alias('product_instance.variants')
 
   # Why doesn't sum or even @get .. @each work ?
   quantity: Ember.computed 'blocks.@each.quantity', ->
@@ -33,10 +55,25 @@ Ink.VariantsController = Ember.Controller.extend
   propertiesValue: Ember.computed.alias('propertiesController.value')
 
   propertiesValueChanged: Ember.observer 'propertiesController.value', ->
+    return unless @get('current')
     value = @get('propertiesController.value')
     if c = @get('blocks').find((c) -> Ember.compare(c.get('properties'), value) == 0)
       @set('current', c)
     else
+      prev = @get('current.properties')
+
+      @get('variants').forEach (v) ->
+        ids = v.get('property_ids')
+        if prev.every((id) -> ids.contains(id))
+          ids = ids.map (id) ->
+            i = prev.indexOf(id)
+            if i == -1
+              id
+            else
+              value[i]
+          v.set('property_ids', ids)
+          v.save()
+
       @get('current').set('properties', value)
 
   currentChanged: Ember.observer 'current', ->
@@ -123,8 +160,7 @@ Ink.VariantGroupController = Ember.ArrayController.extend
   firstRow: Ember.computed ->
     @model[0].name == '?'
 
-  quantity: Ember.computed '@each.quantity', ->
-    @get('@each.quantity').reduce ((sum, v) -> sum + parseInt(v)), 0
+  quantity: Ember.computed.sum '@each.quantity'
 
   parentQuantity: Ember.computed.alias('parentController.quantity')
 
@@ -171,4 +207,32 @@ Ink.VariantGroupController = Ember.ArrayController.extend
       ((unit_price - @get('unit_cost')) * 100.0 / unit_price).toFixed(1)
 
 Ink.VariantController = Ember.ObjectController.extend
-  quantity: 0
+  #quantity: 0
+
+  properties: Ember.computed 'parentController.parentProperties', ->
+    @get('parentController.parentProperties').concat([@get('id')])
+
+  variants: Ember.computed.alias('parentController.parentController.parentController.variants')
+
+  variant: Ember.computed 'variants', 'properties', ->
+    properties = @get('properties').compact()
+    variants = @get('variants')
+    variant = variants.find (v) ->
+      ids = v.get('property_ids')
+      return false unless ids.length == properties.length
+      ids.every (id) -> properties.contains(id)
+    return variant if variant
+    @store.createRecord('variant',
+      instance: variants.toArray()[0].get('instance'),
+      quantity: 0,
+      property_ids: properties
+    )
+
+  quantity: Ember.computed 'variant', (key, value) ->
+    variant = @get('variant')
+    if value
+      value = parseInt(value)
+      variant.set('quantity', value)
+      value
+    else
+      variant.get('quantity')
