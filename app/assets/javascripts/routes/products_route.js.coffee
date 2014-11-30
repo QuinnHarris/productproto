@@ -26,8 +26,11 @@ Ink.ProductsRoute = Ember.Route.extend
       outlet: 'groups',
       into: 'products'
 
-
+    decorations_controller = @controllerFor('decorations')
+    decorations_controller.set('model', product_data.data)
+    decorations_controller.set('variantsController', variants_controller)
     @render 'decorations',
+      controller: decorations_controller,
       outlet: 'decorations',
       into: 'products',
       model: product_data.data

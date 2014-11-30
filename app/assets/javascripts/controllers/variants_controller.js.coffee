@@ -1,7 +1,7 @@
 Ink.VariantsController = Ember.ArrayController.extend
   itemController: 'variantGroups'
 
-  content: Em.ArrayProxy.create(content: []),
+  #content: Em.ArrayProxy.create(content: []),
 
   # Can this be initiated before any other computed properties?
   # Init runs before any properties are set
@@ -173,7 +173,7 @@ Ink.VariantGroupController = Ember.ArrayController.extend
     @get('parentController.properties').concat([@model[0].id])
 
   basis: Ember.computed 'properties', ->
-    product_data.getCostPrice(@get('properties'))
+    product_data.getCostPrice([-1].concat(@get('properties')))
 
   unit_price_default: Ember.computed 'quantityBasis', 'basis', ->
     product_data.getPrice(@get('basis').prices, @get('quantityBasis'))

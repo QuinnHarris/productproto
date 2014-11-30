@@ -1,4 +1,6 @@
 Ink.DecorationsController = Ember.ObjectController.extend
+  quantity: Ember.computed.alias 'variantsController.quantity'
+
   currentLocations: Ember.computed 'techniqueId', ->
     techniqueId = @get('techniqueId')
     model = @get('model')
@@ -27,6 +29,11 @@ Ink.DecorationColorsController = Ember.ObjectController.extend
 
   removeColor: (object) ->
     @get('colors').removeObject object
+
+  count: Ember.computed.alias 'colors.length'
+
+  quantityBasis: Ember.computed 'count', 'parentController.quantity', ->
+    [@get('count'), @get('parentController.quantity')]
 
   actions:
     addColor: ->

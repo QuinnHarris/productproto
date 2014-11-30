@@ -8,26 +8,6 @@ class ProductsController < ApplicationController
     @light_colors = %w(Ash Carolina\ Blue Light\ Blue Light\ Pink Natural Orange Safety\ Green Safety\ Orange Sport\ Grey White Prairie\ Dust Yellow\ Haze Sand)
     @colors = @colors.map { |c| { id: prop_id += 1, name: c, image: "/gildan/Gildan_#{c.gsub(' ','')}.gif", image_tint: @light_colors.include?(c) ? 'light' : 'dark' } }
 
-    # basis, fixed, unit, per decoration
-    @costs = [
-        # All
-        { predicate: [[1,2,3,4]], priority: 0, input: 1, breaks: [{ n: 1, v: 7.5 }, { n: 12, v: 6.32 }, { n: 72, v: 5.47 }] },
-        { predicate: [5], priority: 0, input: 1, breaks: [{ n: 1, v: 9.73 }, { n: 12, v: 8.21 }, { n: 72, v: 7.1 }] },   # 2XL
-        { predicate: [6], priority: 0, input: 1, breaks: [{ n: 1, v: 10.24 }, { n: 12, v: 8.57 }, { n: 72, v: 7.37 }] }, # 3XL
-        { predicate: [7], priority: 0, input: 1, breaks: [{ n: 1, v: 10.44 }, { n: 12, v: 8.7 }, { n: 72, v: 7.47 }] },  # 4XL
-        { predicate: [8], priority: 0, input: 1, breaks: [{ n: 1, v: 10.83 }, { n: 12, v: 8.98 }, { n: 72, v: 7.67 }] }, # 5XL
-
-        # Ash, Sport Grey
-        { predicate: [[9,28],[1,2,3,4]], priority: 1, input: 1, breaks: [{ n: 1, v: 7.1 }, { n: 12, v: 5.98 }, { n: 72, v: 5.17 }] },
-        { predicate: [[9,28],5], priority: 1, input: 1, breaks: [{ n: 1, v: 9.13 }, { n: 12, v: 7.69 }, { n: 72, v: 6.65 }] },   # 2XL
-        { predicate: [[9,28],6], priority: 1, input: 1, breaks: [{ n: 1, v: 9.63 }, { n: 12, v: 8.04 }, { n: 72, v: 6.91 }] }, # 3XL
-        { predicate: [[9,28],7], priority: 1, input: 1, breaks: [{ n: 1, v: 9.80 }, { n: 12, v: 8.16 }, { n: 72, v: 7.00 }] },  # 4XL
-        { predicate: [[9,28],8], priority: 1, input: 1, breaks: [{ n: 1, v: 10.10 }, { n: 12, v: 8.42 }, { n: 72, v: 7.19 }] }, # 5XL
-
-        # Closout: Kiwi,
-        { predicate: [[30,31,32]], priority: 1, breaks: [{ n: 1, v: 1.64 }] },
-    ]
-
     @inventory = [
         { predicate: [30,6], quantity: 0 },
     ]
@@ -52,13 +32,40 @@ class ProductsController < ApplicationController
     decorations << { id: prop_id += 1, location: locations.last[:id], technique: techniques.last[:id] }
     techniques += %w(None).map { |n| { id: prop_id += 1, name: n } }
 
-    @prices = [
-        { priority: 10, op: :mult, input: 1, breaks: [{ n: 1, v: 1.4285714285714286 }] },
-        { predicate: [techniques[0][:id]], priority: 20, input: 0, breaks: [{ n: 10, v: 50.0 }] },
-        { predicate: [techniques[0][:id]], priority: 20, input: 'mult', breaks: [{ n: 10, v: 0.50 }] },
-        { predicate: [techniques[1][:id]], priority: 20, input: 1, breaks: [{ n: 1, v: 1.50 }] },
+    # Hardcoded predicates
+    # -1 Product Variant
+    # -2 Decoration
 
-        { predicate: [meta[0][:id]], priority: 20, breaks: [{ fixed: 20.0 }] }
+    @costs = [
+        # All
+        { predicate: [[1,2,3,4]], priority: 0, input: 1, breaks: [{ n: 1, v: 7.5 }, { n: 12, v: 6.32 }, { n: 72, v: 5.47 }] },
+        { predicate: [5], priority: 0, input: 1, breaks: [{ n: 1, v: 9.73 }, { n: 12, v: 8.21 }, { n: 72, v: 7.1 }] },   # 2XL
+        { predicate: [6], priority: 0, input: 1, breaks: [{ n: 1, v: 10.24 }, { n: 12, v: 8.57 }, { n: 72, v: 7.37 }] }, # 3XL
+        { predicate: [7], priority: 0, input: 1, breaks: [{ n: 1, v: 10.44 }, { n: 12, v: 8.7 }, { n: 72, v: 7.47 }] },  # 4XL
+        { predicate: [8], priority: 0, input: 1, breaks: [{ n: 1, v: 10.83 }, { n: 12, v: 8.98 }, { n: 72, v: 7.67 }] }, # 5XL
+
+        # Ash, Sport Grey
+        { predicate: [[9,28],[1,2,3,4]], priority: 1, input: 1, breaks: [{ n: 1, v: 7.1 }, { n: 12, v: 5.98 }, { n: 72, v: 5.17 }] },
+        { predicate: [[9,28],5], priority: 1, input: 1, breaks: [{ n: 1, v: 9.13 }, { n: 12, v: 7.69 }, { n: 72, v: 6.65 }] },   # 2XL
+        { predicate: [[9,28],6], priority: 1, input: 1, breaks: [{ n: 1, v: 9.63 }, { n: 12, v: 8.04 }, { n: 72, v: 6.91 }] }, # 3XL
+        { predicate: [[9,28],7], priority: 1, input: 1, breaks: [{ n: 1, v: 9.80 }, { n: 12, v: 8.16 }, { n: 72, v: 7.00 }] },  # 4XL
+        { predicate: [[9,28],8], priority: 1, input: 1, breaks: [{ n: 1, v: 10.10 }, { n: 12, v: 8.42 }, { n: 72, v: 7.19 }] }, # 5XL
+
+        # Closout: Kiwi,
+        { predicate: [[30,31,32]], priority: 1, breaks: [{ n: 1, v: 1.64 }] },
+
+        { predicate: [techniques[0][:id]], priority: 1, input: 0, breaks: [{ n: 10, v: 40.0 }] },
+        { predicate: [techniques[0][:id]], priority: 1, input: [0,1], breaks: [{ n: 10, v: 0.40 }] },
+        { predicate: [techniques[1][:id]], priority: 1, input: 1, breaks: [{ n: 1, v: 1.20 }] },
+
+        { predicate: [meta[0][:id]], priority: 1, breaks: [{ fixed: 16.0 }] }
+    ]
+
+    @prices = [
+        { predicate: [-1], priority: 10, op: :mult, input: 1, breaks: [{ n: 1, v: 1.4285714285714286 }] },
+
+        { predicate: [-2], priority: 10, op: :mult, input: 0, breaks: [{ n: 1, v: 1.25 }] },
+        { predicate: [-2], priority: 10, op: :mult, input: 1, breaks: [{ n: 1, v: 1.25 }] },
     ]
 
     @images = @colors.map do |c|
