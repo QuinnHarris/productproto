@@ -57,31 +57,40 @@ class window.PricingBase
 
       { n: qty, v: func.apply(this, (l[0].v for l in meta_list)) }
 
-  _applyStack: (list, predicate, cost_basis = []) ->
-    basis = cost_basis
-    for elem in @_selectStack(list, predicate)
-      meta_list = [basis, elem.breaks, cost_basis].compact()
-      basis = switch elem.op
-        when 'add'
-          @_combineBreaks meta_list, (a, b) -> a + b
-        when 'mult'
-          @_combineBreaks meta_list, (a, b) -> a * b
-        when 'disc'
-          @_combineBreaks meta_list, ((a, b, c) -> (a - c)*b + c)
-        else
-          elem.breaks
-    return basis
+  _applyStack: (list, predicate, cost_basis_list = []) ->
+    stack = @_selectStack(list, predicate)
+    for input in stack.mapBy('input').uniq()
+      elem = cost_basis_list.find((cb) -> cb.input == input)
+      cost_basis = elem.breaks if elem
+      cost_basis ?= []
+      basis = cost_basis
+      for elem in stack.filter((e) -> e.input == input)
+        meta_list = [basis, elem.breaks, cost_basis].compact()
+        basis = switch elem.op
+          when 'add'
+            @_combineBreaks meta_list, (a, b) -> a + b
+          when 'mult'
+            @_combineBreaks meta_list, (a, b) -> a * b
+          when 'disc'
+            @_combineBreaks meta_list, ((a, b, c) -> (a - c)*b + c)
+          else
+            elem.breaks
+      { input: input, breaks: basis }
 
   getCostPrice: (predicate) ->
     cost_basis = @_applyStack(@data.costs, predicate)
     price_basis = @_applyStack(@data.prices, predicate, cost_basis)
     { costs: cost_basis, prices: price_basis }
 
-  getPrice: (basis, quantity) ->
-    quantity = 1 if quantity == 0
-    result = null
-    for br in basis
-      break if br.n > quantity
-      result = br.v
-    result
+  getPrice: (basis, quantity_list) ->
+    sum = 0
+    for base in basis
+      quantity = quantity_list[base.input]
+      quantity = 1 unless quantity
+      result = null
+      for br in base.breaks
+        break if br.n > quantity
+        result = br.v
+      sum += result if result
+    sum
 

@@ -159,7 +159,12 @@ Ink.VariantGroupController = Ember.ArrayController.extend
 
   quantity: Ember.computed.sum '@each.quantity'
 
-  parentQuantity: Ember.computed.alias('parentController.quantity')
+  quantityBasis: Ember.computed 'quantity',
+    'parentController.quantity',
+    'parentController.parentController.quantity', ->
+      [@get('quantity'),
+       @get('parentController.quantity'),
+       @get('parentController.parentController.quantity')]
 
   show: Ember.computed 'quantity', ->
     @get('quantity') != 0
@@ -170,8 +175,8 @@ Ink.VariantGroupController = Ember.ArrayController.extend
   basis: Ember.computed 'properties', ->
     product_data.getCostPrice(@get('properties'))
 
-  unit_price_default: Ember.computed 'parentQuantity', 'basis', ->
-    product_data.getPrice(@get('basis').prices, @get('parentQuantity'))
+  unit_price_default: Ember.computed 'quantityBasis', 'basis', ->
+    product_data.getPrice(@get('basis').prices, @get('quantityBasis'))
 
   unit_price: Ember.computed 'unit_price_value', 'unit_price_default', ->
     @get('unit_price_value') ? @get('unit_price_default')
@@ -179,8 +184,8 @@ Ink.VariantGroupController = Ember.ArrayController.extend
   total_price: Ember.computed 'quantity', 'unit_price', ->
     @get('quantity') * @get('unit_price')
 
-  unit_cost_default: Ember.computed 'parentQuantity', 'basis', ->
-    product_data.getPrice(@get('basis').costs, @get('parentQuantity'))
+  unit_cost_default: Ember.computed 'quantityBasis', 'basis', ->
+    product_data.getPrice(@get('basis').costs, @get('quantityBasis'))
 
   unit_cost: Ember.computed 'unit_cost_value', 'unit_cost_default', ->
     @get('unit_cost_value') ? @get('unit_cost_default')

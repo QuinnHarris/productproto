@@ -17,6 +17,6 @@ describe "Pricing", ->
     it "provides costs and prices", ->
       result = @pricing.getCostPrice([3,9])
       costs = [{n:1,v:7.1},{n:12,v:5.98},{n:72,v:5.17}]
-      expect(_.isEqual(result.costs, costs)).to.be.true
-      expect(_.isEqual(result.prices, costs.map((e) -> { n: e.n, v: e.v * 1.3 }))).to.be.true
+      expect(_.isEqual(result.costs[0].breaks, costs)).to.be.true
+      expect(_.isEqual(result.prices[0].breaks, costs.map((e) -> { n: e.n, v: e.v * 1.3 }))).to.be.true
 
