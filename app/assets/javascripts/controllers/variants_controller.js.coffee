@@ -18,7 +18,7 @@ Ink.VariantsController = Ember.ArrayController.extend
         @addObject prop
 
     if added.length == 0
-      @gaddObject [null]
+      @addObject [null]
 
     @set 'current', @get('firstObject')
   ).observes('product_instance')
@@ -68,6 +68,12 @@ Ink.VariantsController = Ember.ArrayController.extend
   currentChanged: Ember.observer 'current', ->
     return unless @get('propertiesController.value')
     @set 'propertiesController.value', @get('current.properties')
+
+  currentChange: (->
+    current = @get('current')
+    if current && current.get('quantity') == 0
+      @removeObject current
+  ).observesBefore('current')
 
   optionTypes: Ember.computed ->
     p.name for p in product_data.data.properties
