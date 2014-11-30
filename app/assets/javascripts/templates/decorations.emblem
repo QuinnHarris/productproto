@@ -5,6 +5,6 @@
 
     .location
       if useColors
-        = render 'decorationColors'
+        = render 'decorationColors' 'technique'
       if useNumber
-        = render 'decorationNumber'
+        = render 'decorationNumber' 'technique'

@@ -16,8 +16,8 @@ Ink.DecorationsController = Ember.ObjectController.extend
     technique.class == 'number'
 
 
-Ink.DecorationUnspecifiedProps = { standard_id: 0, name: 'UN', color: 'white' }
-Ink.DecorationColorsController = Ember.Controller.extend
+Ink.DecorationUnspecifiedProps = { id: 0, standard_id: 0, name: 'UN', color: 'white' }
+Ink.DecorationColorsController = Ember.ObjectController.extend
   initColors: (->
     @set 'colors', Ember.ArrayProxy.create({content: [ Ember.Object.create(Ink.DecorationUnspecifiedProps) ]})
   ).on('init')
@@ -40,24 +40,16 @@ Ink.DecorationColorController = Ember.ObjectController.extend
 
   opened: false
 
-  standardColors: Ember.computed ->
-    [Ink.DecorationUnspecifiedProps].concat(
-      [
-        { standard_id: 1, name: 'Black', color: '000000'},
-        { standard_id: 2, name: 'White', color: 'FFFFFF'},
-        { standard_id: 3, name: 'Red', color: 'FF0000' },
-        { standard_id: 4, name: 'Green', color: '00FF00' },
-        { standard_id: 5, name: 'Blue', color: '0000FF' },
-        { standard_id: 6, name: 'Yellow', color: 'FFFF00' }
-      ])
+  standardColors: Ember.computed 'parentController.standard_colors', ->
+    [Ink.DecorationUnspecifiedProps].concat @get('parentController.standard_colors')
 
   selectedColor: Ember.computed 'customValue', (key, value) ->
     if value
-      @get('model').setProperties(value)
+      @get('model').setProperties(standard_id: value.id, name: value.name, color: value.color)
       value
     else
       id = @get('standard_id')
-      @get('standardColors').find (o) -> o.standard_id == id
+      @get('standardColors').find (o) -> o.id == id
 
   customValue: Ember.computed 'selectedColor', (key, value) ->
     if value

@@ -35,7 +35,17 @@ class ProductsController < ApplicationController
     meta = %w(Color\ Match).map { |n| { id: prop_id += 1, name: n } }
     locations = %w(Front Back).map { |n| { id: prop_id += 1, name: n } }
     techniques = %w(Screen\ Print Photo\ Print Embroidery).map { |n| { id: prop_id += 1, name: n } }
-    techniques[0][:class] = 'color'
+    screen_standard_colors = [
+      { name: 'Black', color: '000000'},
+      { name: 'White', color: 'FFFFFF'},
+      { name: 'Red', color: 'FF0000' },
+      { name: 'Green', color: '00FF00' },
+      { name: 'Blue', color: '0000FF' },
+      { name: 'Yellow', color: 'FFFF00' },
+      { name: 'Cyan', color: '00FFFF' },
+      { name: 'Magenta', color: 'FF00FF' },
+    ]
+    techniques[0].merge!(class: 'color', standard_colors: screen_standard_colors.map { |n| n.merge(id: prop_id += 1) } )
     techniques[2].merge!( class: 'number', desc: 'stiches' )
     decorations = locations.map { |loc| techniques.map { |tech| { id: prop_id += 1, location: loc[:id], technique: tech[:id] } } }.flatten
     locations << { id: prop_id += 1, name: 'Front Pocket' }
