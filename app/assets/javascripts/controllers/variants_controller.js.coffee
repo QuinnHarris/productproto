@@ -1,23 +1,13 @@
-Ink.VariantsController = Ember.Controller.extend
-  #itemController: 'variantGroups'
+Ink.VariantsController = Ember.ArrayController.extend
+  itemController: 'variantGroups'
 
-  createBlock: (properties) ->
-    Ink.VariantGroupsController.create(
-      target: @,
-      parentController: @,
-      container: @get('container'),
-      properties: properties )
-
-  initBlocks: (->
-    @set 'blocks', Ember.ArrayProxy.create(content: [])
-  ).on('init')
+  content: Em.ArrayProxy.create(content: []),
 
   # Can this be initiated before any other computed properties?
   # Init runs before any properties are set
-  setBlocks: Em.observer 'product_instance', ->
+  setBlocks: (->
     pd = @get('product_data')
     pi = @get('product_instance')
-    blocks = @get('blocks')
 
     added = []
     pi.get('variants').forEach (v) =>
@@ -25,24 +15,25 @@ Ink.VariantsController = Ember.Controller.extend
       prop = pd.propertyFromPredicate pred
       unless added.find((p) -> Em.isEqual(p, prop))
         added.push prop
-        blocks.addObject @createBlock(prop)
+        @addObject prop
 
     if added.length == 0
-      blocks.addObject @createBlock [null]
+      @gaddObject [null]
 
-    @set 'current', blocks.get('firstObject')
+    @set 'current', @get('firstObject')
+  ).observes('product_instance')
 
   variants: Ember.computed.alias('product_instance.variants')
 
   # Why doesn't sum or even @get .. @each work ?
-  quantity: Ember.computed 'blocks.@each.quantity', ->
-    @get('blocks').reduce ((sum, v) -> sum + v.get('quantity')), 0
-  total_price: Ember.computed 'blocks.@each.total_price', ->
-    @get('blocks').reduce ((sum, v) -> sum + v.get('total_price')), 0
-  total_cost: Ember.computed 'blocks.@each.total_cost', ->
-    @get('blocks').reduce ((sum, v) -> sum + v.get('total_cost')), 0
-  profit: Ember.computed 'blocks.@each.profit', ->
-    @get('blocks').reduce ((sum, v) -> sum + v), 0
+  quantity: Ember.computed '@each.quantity', ->
+    @reduce ((sum, v) -> sum + v.get('quantity')), 0
+  total_price: Ember.computed '@each.total_price', ->
+    @reduce ((sum, v) -> sum + v.get('total_price')), 0
+  total_cost: Ember.computed '@each.total_cost', ->
+    @reduce ((sum, v) -> sum + v.get('total_cost')), 0
+  profit: Ember.computed '@each.profit', ->
+    @reduce ((sum, v) -> sum + v.get('profit')), 0
 
   margin: Ember.computed 'total_price', 'total_cost', (key, value) ->
     unit_price = @get('total_price')
@@ -54,7 +45,7 @@ Ink.VariantsController = Ember.Controller.extend
   propertiesValueChanged: Ember.observer 'propertiesController.value', ->
     return unless @get('current')
     value = @get('propertiesController.value')
-    if c = @get('blocks').find((c) -> Ember.compare(c.get('properties'), value) == 0)
+    if c = @.find((c) -> Ember.compare(c.get('properties'), value) == 0)
       @set('current', c)
     else
       prev = @get('current.properties')
@@ -83,25 +74,32 @@ Ink.VariantsController = Ember.Controller.extend
 
   actions:
     addGroup: ->
-      blocks = @get('blocks')
       next_prop = for list, i in @get('propertiesController.availableIds')
         list.find (id) ->
-          !blocks.find (c) -> c.get('properties')[i] == id
+          !@find (c) -> c.get('properties')[i] == id
 
-      current = @createBlock(next_prop)
-      blocks.addObject current
-      @set('current', current)
+      @addObject next_prop
+      @set('current', @get('lastObject'))
 
 # Can't use ArrayController because contents depends on properties input
 Ink.VariantGroupsController = Ember.ArrayController.extend
   itemController: 'variantGroup'
 
+  # Content is normally alias of model on ArrayController.
+  # But this computes the content from the model (data for controller)
+  # So the alias is broken here
+  content: null,
+
+  properties: Em.computed.alias('model')
+
+  # Content usually doesn't change when parent properties change
+  # So don't change content if not necissary for a noticable performace improvement
   nullGroup: [{ id: 1, name: '?' }]
   setGroups: (->
-    current = @get('model')
+    current = @get('content')
     expected = [@get('nullGroup')].concat product_data.variantGroups(@get('properties'))
     unless Em.isEqual(current, expected)
-      @set 'model', expected
+      @set 'content', expected
   ).observes('properties').on('init')
 
   selected: Ember.computed 'parentController.current', ->
@@ -131,7 +129,6 @@ Ink.VariantGroupsController = Ember.ArrayController.extend
       img.predicate.every (i) -> ids.contains(i)
     img && img.src
 
-  # Why doesn't Ember.computer.sum work?
   quantity: Ember.computed.sum '@each.quantity'
   total_price: Ember.computed.sum '@each.total_price'
   total_cost: Ember.computed.sum '@each.total_cost'

@@ -13,7 +13,7 @@ table.variants
       td Total
       td.adv Unit
       td.adv Total
-  each blk in blocks
+  each blk in controller
     tbody class=blk.selected click="select"
       tr
         th rowspan=blk.rowSpan
