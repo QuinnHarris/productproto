@@ -93,30 +93,15 @@ Ink.VariantsController = Ember.Controller.extend
       @set('current', current)
 
 # Can't use ArrayController because contents depends on properties input
-Ink.VariantGroupsController = Ember.Controller.extend
+Ink.VariantGroupsController = Ember.ArrayController.extend
+  itemController: 'variantGroup'
+
   nullGroup: [{ id: 1, name: '?' }]
   setGroups: (->
-    unless groups = @get('groups')
-      groups = Ember.ArrayProxy.create(content: [])
-      @set 'groups', groups
-
+    current = @get('model')
     expected = [@get('nullGroup')].concat product_data.variantGroups(@get('properties'))
-
-    if expected.length > groups.length
-      groups.removeAt(expected.length, groups.length-expected.length)
-
-    groups.forEach (g) ->
-      exp = expected.shift()
-      g.set('model', exp) unless g.get('model') == exp
-
-    for m in expected
-      groups.addObject(
-        Ink.VariantGroupController.create
-          target: @,
-          parentController: @,
-          container: @get('container'),
-          model: m
-      )
+    unless Em.isEqual(current, expected)
+      @set 'model', expected
   ).observes('properties').on('init')
 
   selected: Ember.computed 'parentController.current', ->
@@ -126,11 +111,11 @@ Ink.VariantGroupsController = Ember.Controller.extend
     select: ->
       @set('parentController.current', @)
 
-  rowSpan: Ember.computed 'groups.@each', ->
-    @get('groups.length') + 2
+  rowSpan: Ember.computed 'this.[]', ->
+    @get('length') + 2
 
-  showFooter: Ember.computed 'groups.@each.quantity', ->
-    @get('groups.@each.quantity').filter((v) -> v > 0).length > 1
+  showFooter: Ember.computed '@each.quantity', ->
+    @get('@each.quantity').filter((v) -> v > 0).length > 1
 
   options: Ember.computed 'properties', ->
     properties = @get('properties')
@@ -147,14 +132,10 @@ Ink.VariantGroupsController = Ember.Controller.extend
     img && img.src
 
   # Why doesn't Ember.computer.sum work?
-  quantity: Ember.computed 'groups.@each.quantity', ->
-    @get('groups.@each.quantity').reduce ((sum, v) -> sum + v), 0
-  total_price: Ember.computed 'groups.@each.total_price', ->
-    @get('groups.@each.total_price').reduce ((sum, v) -> sum + v), 0
-  total_cost: Ember.computed 'groups.@each.total_cost', ->
-    @get('groups.@each.total_cost').reduce ((sum, v) -> sum + v), 0
-  profit: Ember.computed 'groups.@each.profit', ->
-    @get('groups.@each.profit').reduce ((sum, v) -> sum + v), 0
+  quantity: Ember.computed.sum '@each.quantity'
+  total_price: Ember.computed.sum '@each.total_price'
+  total_cost: Ember.computed.sum '@each.total_cost'
+  profit: Ember.computed.sum '@each.profit'
 
   margin: Ember.computed 'total_price', 'total_cost', (key, value) ->
     unit_price = @get('total_price')

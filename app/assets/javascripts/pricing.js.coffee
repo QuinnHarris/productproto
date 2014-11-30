@@ -3,7 +3,7 @@ Array.prototype.isEqual = (b) ->
   return false if @.length != b.length
 
   for e, i in @
-    return false unless e == b[i]
+    return false unless Em.isEqual(e, b[i])
   true
 
 class window.PricingBase

@@ -21,7 +21,7 @@ table.variants
             each opt in blk.options
               = partial 'option'
           //img height="110" width="100" src=blk.imageSrc
-      each group in blk.groups
+      each group in blk
         tr class=group.show
           td: div
             each sub in controller
