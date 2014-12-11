@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '4.1.7'
+gem 'rails', '4.1.8'
 
 # Use sequel instead of Active Record
 gem 'pg'
@@ -38,7 +38,7 @@ gem 'devise'
 gem 'sequel-devise'
 
 gem 'ember-rails'
-gem 'ember-source' #, '=1.9.0beta.1.1'
+gem 'ember-source', '~> 1.8.1' # Fix to work on 1.9
 gem 'emblem-rails'
 
 # Testing

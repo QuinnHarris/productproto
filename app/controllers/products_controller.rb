@@ -52,7 +52,7 @@ class ProductsController < ApplicationController
         { predicate: [[9,28],8], priority: 1, input: 1, breaks: [{ n: 1, v: 10.10 }, { n: 12, v: 8.42 }, { n: 72, v: 7.19 }] }, # 5XL
 
         # Closout: Kiwi,
-        { predicate: [[30,31,32]], priority: 1, breaks: [{ n: 1, v: 1.64 }] },
+        { predicate: [[30,31,32]], priority: 2, input: 1, breaks: [{ n: 1, v: 1.64 }] },
 
         { predicate: [techniques[0][:id]], priority: 1, input: 0, breaks: [{ n: 10, v: 40.0 }] },
         { predicate: [techniques[0][:id]], priority: 1, input: [0,1], breaks: [{ n: 10, v: 0.40 }] },
