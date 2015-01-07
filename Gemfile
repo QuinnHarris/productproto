@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '4.2.0.rc3'
+gem 'rails', '4.2.0'
 
 # Use sequel instead of Active Record
 gem 'pg'
@@ -82,3 +82,9 @@ gem 'spring',        group: :development
 # gem 'debugger', group: [:development, :test]
 
 gem 'tzinfo-data', platforms: [:mingw, :mswin]
+
+# For fetch
+group :development do
+  gem 'typhoeus'
+  gem 'nokogiri'
+end
