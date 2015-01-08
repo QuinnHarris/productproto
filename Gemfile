@@ -17,7 +17,7 @@ gem 'slim'
 gem 'therubyracer',  platforms: :ruby
 
 # Use jquery as the JavaScript library
-gem 'jquery-rails', '3.1.2' # Not working with 4.0
+gem 'jquery-rails' #, '3.1.2' # Not working with 4.0
 #gem 'jquery-ui-rails'
 
 gem 'foundation-rails'
