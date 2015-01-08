@@ -10,11 +10,12 @@ class FileCache
   end
 
   def paths(url)
-    uri = URI.parse('http://' + url)
+    url = 'http://' + url unless url.include?('://')
+    uri = URI.parse(url)
     path = uri.path
-    path = "#{path}/index.html" if path.empty? or path[-1] == '/'
+    #path = "#{path}/index.html" #if path.empty? or path[-1] == '/'
     path += '?' + uri.query if uri.query
-    %w(body request).map { |p| File.join(@root, p, uri.host, path) }
+    %w(body request).map { |p| File.join(@root, uri.host, path, "index.#{p}") }
   end
 
   def get(request)

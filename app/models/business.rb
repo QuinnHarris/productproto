@@ -20,4 +20,12 @@ class Business < Sequel::Model
     end unless bus
     bus
   end
+
+  def add_emails(list, source = nil)
+    db.transaction do
+      (list - emails_dataset.select_map(:value)).uniq.each do |email|
+        self.add_email(source: source, value: email)
+      end
+    end
+  end
 end
