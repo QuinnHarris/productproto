@@ -35,8 +35,14 @@ gem 'devise'
 gem 'sequel-devise'
 
 gem 'ember-rails'
-gem 'ember-source', '~> 1.8.1' # Fix to work on 1.9
-gem 'emblem-rails'
+gem 'ember-source' #, '~> 1.8.1' # Fix to work on 1.9
+
+#gem 'emblem-rails'
+
+# https://github.com/machty/emblem.js/issues/182
+gem 'barber-emblem', git:'https://github.com/simcha/barber-emblem.git'
+gem 'emblem-rails', '~> 0.2.1'
+gem 'emblem-source', git:'https://github.com/machty/emblem.js.git'
 
 # Testing
 group :development, :test do

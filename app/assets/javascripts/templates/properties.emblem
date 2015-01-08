@@ -1,5 +1,5 @@
 dl#properties
-  each
+  each p in controller
     dt= name
     dd
-      = option-list items=fullList class="swatches" selectedId=property
+      = option-list items=p.fullList class="swatches" selectedId=p.property

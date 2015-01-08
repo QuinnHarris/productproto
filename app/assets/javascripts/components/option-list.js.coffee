@@ -21,7 +21,8 @@ Ink.OptionListComponent = Ember.Component.extend
 
   selectedId: Ember.computed 'selected', (key, value) ->
     if arguments.length > 1
-      @set('selected', @get('items').find((i) -> i.id == value))
+      items = @get('items')
+      @set('selected', items.find((i) -> i.id == value)) if items
     else
       s = @get('selected')
       s && s.id
