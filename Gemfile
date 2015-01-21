@@ -44,6 +44,9 @@ gem 'barber-emblem', git:'https://github.com/simcha/barber-emblem.git'
 gem 'emblem-rails', '~> 0.2.1'
 gem 'emblem-source', git:'https://github.com/machty/emblem.js.git'
 
+gem 'user_agent_parser'
+gem 'high_voltage'
+
 # Testing
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
@@ -55,6 +58,7 @@ group :development, :test do
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   #gem 'spring'
 
+  #gem 'sass-rails-source-maps'
   #gem 'coffee-rails-source-maps'
 
   #gem 'konacha'

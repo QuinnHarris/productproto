@@ -23,8 +23,8 @@ Rails.application.config.sequel.schema_format = :sql
 # Defaults to true
 #config.sequel.load_database_tasks = false
 
-Sequel::Model.db.extension :pg_array, :pg_inet
-Sequel.extension :pg_array_ops
+Sequel::Model.db.extension :pg_array, :pg_inet, :pg_hstore
+Sequel.extension :pg_array_ops, :pg_hstore_ops
 Sequel::Model.plugin :active_model
 Sequel::Model.plugin :timestamps
 Sequel::Model.plugin :factory_girl_support
