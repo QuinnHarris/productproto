@@ -22,15 +22,17 @@ class SpamMailer < ApplicationMailer
 
 
   def url_options
-    return super unless @email
-    super.merge(r: @email.encode_ref_id)
+    return super unless @email_record
+    super.merge(r: @email_record.encode_ref_id)
   end
 
-  def self.always_email
-    be = BusinessEmail.new(value: 'quinn@ornimo.com')
-    b = Business.new(name: 'Self')
-    be.associations[:business] = b
-    be
+  def self.always_emails
+    BusinessEmail.where(type: 'Always').eager(:business).all
+  end
+
+  def self.always_spam_email
+    be = BusinessEmail.where(type: 'Always').eager(:business).first
+    be.spam_emails_dataset.first
   end
 
   def self.annoy(method_name, count, from_iteration = nil)
@@ -48,7 +50,7 @@ class SpamMailer < ApplicationMailer
         Sequel.function(:rank).over(partition: :business_id, order: :id),
         Sequel.function(:random) )
     be_records = BusinessEmail.from(be_part).where(id: se_ds).invert.order(:rank, :random).first(count)
-    be_records.unshift always_email
+    be_records = always_emails + be_records
 
     raise "No Records" if be_records.empty?
 
@@ -56,29 +58,28 @@ class SpamMailer < ApplicationMailer
 
     #yaml_path = send(:new).lookup_context.find(name, [mailer_name], nil, [], formats: ['yaml'])
 
+    versions = nil
+    version = 0
+    be_records.each do |be|
+      SpamEmail.db.transaction do
+        se = SpamEmail.create(spam_batch: this_sb, business_email: be, version: version) unless be.new?
 
-      versions = nil
-      version = 0
-      be_records.each do |be|
-        SpamEmail.db.transaction do
-          se = SpamEmail.create(spam_batch: this_sb, business_email: be, version: version) unless be.new?
+        mailer = self.send(:new, method_name, version, se)
+        if versions
+          raise "Version mismatch" unless versions == mailer.versions
+        else
+          versions = mailer.versions
+          raise "Must have versions" unless versions
+        end
 
-          mailer = self.send(:new, method_name, version, be)
-          if versions
-            raise "Version mismatch" unless versions == mailer.versions
-          else
-            versions = mailer.versions
-            raise "Must have versions" unless versions
-          end
-
-          version += 1
-          version = 0 if version >= versions
+        version += 1
+        version = 0 if version >= versions
       end
     end
   end
 
   default from: 'info@ornimo.com',
-          to: Proc.new { @email_record.value }
+          to: Proc.new { @email_record.business_email.value }
 
   def introduction
     set_versions 2

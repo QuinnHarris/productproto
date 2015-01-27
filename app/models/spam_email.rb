@@ -7,13 +7,13 @@ class SpamEmail < Sequel::Model
 
   # Not secure, so what.
   ENCODE_KEY = ["eba69c93d88ef8fbc75a4787"].pack('H*')
-  def hash_prefix(id_string)
+  def self.hash_prefix(id_string)
     Digest::MD5.new.digest(id_string+ENCODE_KEY)[0..1]
   end
 
   def encode_ref_id
     id_string = [id].pack('L')
-    Base64.urlsafe_encode64(id_string + hash_prefix(id_string))
+    Base64.urlsafe_encode64(id_string + self.class.hash_prefix(id_string))
   end
 
   def self.decode_ref_id(string)

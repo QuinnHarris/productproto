@@ -1,11 +1,15 @@
 Sequel.migration do
   # CREATE EXTENSION hstore
-  up { create_schema :access }
-  down { drop_schema :access }
-
   up do
+    create_schema :access
 
+    sb = SpamBatch.create(name: 'initial', iteration: 0)
+    b = Business.create(name: 'Ornimo', website: 'http://www.ornimo.com')
+    be = BusinessEmail.create(business: b, type: 'Always', value: 'quinn@ornimo.com')
+    se = SpamEmail.create(spam_batch: sb, business_email: be, version: 0)
   end
+
+  down { drop_schema :access }
 
   change do
     create_table :access__sessions do
@@ -47,7 +51,7 @@ Sequel.migration do
       DateTime    :created_at, null: false
     end
 
-    create_table :spam_email_requests do
+    create_table :access_requests_spam_emails do
       foreign_key :spam_email_id, :spam_emails, null: false
       foreign_key :access_request_id, :access__requests, null: false, unique: true
     end
