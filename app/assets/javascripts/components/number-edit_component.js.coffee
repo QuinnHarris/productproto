@@ -5,7 +5,8 @@ Ink.NumberFieldView = Ember.TextField.extend
   decimalPlaces: -1
 
   didInsertElement: ->
-    $(@element).numeric
+    @_super()
+    @$().numeric
       negative: @get('negative')
       decimalPlaces: @get('decimalPlaces')
 

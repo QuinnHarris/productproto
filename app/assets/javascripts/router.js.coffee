@@ -4,4 +4,4 @@ Ink.Router.map ()->
   @resource 'products'
 
 Ink.Router.reopen
-  location: 'history'
+  location: 'history'  # or auto

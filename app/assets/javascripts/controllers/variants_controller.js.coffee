@@ -45,7 +45,7 @@ Ink.VariantsController = Ember.ArrayController.extend
   propertiesValueChanged: Ember.observer 'propertiesController.value', ->
     return unless @get('current')
     value = @get('propertiesController.value')
-    if c = @.find((c) -> Ember.compare(c.get('properties'), value) == 0)
+    if c = @find((c) -> Ember.compare(c.get('properties'), value) == 0)
       @set('current', c)
     else
       prev = @get('current.properties')
