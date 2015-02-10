@@ -19,25 +19,34 @@ Ink.NumberEditComponent = Ember.Component.extend
     return false unless @get('valueDefault')?
     @get('value')?
 
-  valueFormated: Ember.computed 'value', 'valueDefault', (key, value) ->
+  valueComputed: Ember.computed 'value', 'valueDefault', ->
     decimalPlaces = @get('decimalPlaces')
-    if value
+    value = @get('value') ? @get('valueDefault')
+    return null unless value?
+    value = parseFloat(value)
+    return value.toFixed(decimalPlaces) unless decimalPlaces == -1
+    value
+
+  # For internal use
+  valueFormated: Ember.computed 'valueComputed', (key, value, old) ->
+    if arguments.length == 1
+      @get('valueComputed') ? ''
+    else
+      decimalPlaces = @get('decimalPlaces')
       fvalue = parseFloat(value)
+      fvalue = fvalue.toFixed(decimalPlaces) unless decimalPlaces == -1
       valueDefault = @get('valueDefault')
-      if fvalue == valueDefault
+      valueDefault = valueDefault.toFixed(decimalPlaces) if valueDefault?
+      if fvalue == valueDefault or isNaN(fvalue)
         fvalue = null
       else
-        fvalue = fvalue.toFixed(decimalPlaces) unless decimalPlaces == -1
+        fvalue = parseFloat(fvalue)
 
       @set('value', fvalue)
       value
-    else
-      value = @get('value')
-      value = @get('valueDefault') unless value?
-      value = parseFloat(value)
-      return "" if isNaN(value)
-      return value.toFixed(decimalPlaces) unless decimalPlaces == -1
-      value
+
+  focusIn: ->
+    @set('oldValue', @get('valueFormated'))
 
   focusOut: ->
-    @set('valueFormated', @get('value'))
+    @set('valueFormated', @get('valueComputed'))

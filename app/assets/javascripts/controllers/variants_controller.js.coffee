@@ -195,14 +195,14 @@ Ink.VariantGroupController = Ember.ArrayController.extend
 
   profit: Ember.computed 'quantity', 'unit_price', 'unit_cost', (key, value) ->
     if value
-      @set('unit_price',
+      @set('unit_price_value',
            @get('unit_cost') + parseFloat(value) / @get('quantity') )
     else
       @get('quantity') * (@get('unit_price') - @get('unit_cost'))
 
   margin: Ember.computed 'unit_price', 'unit_cost', (key, value) ->
     if value
-      @set('unit_price',
+      @set('unit_price_value',
            (@get('unit_cost') / (1-parseFloat(value)/100.0)).toFixed(3) )
     else
       unit_price = @get('unit_price')
