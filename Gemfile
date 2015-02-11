@@ -39,6 +39,9 @@ gem 'ember-source' #, '~> 1.8.1' # Fix to work on 1.9
 
 gem 'emblem-rails'
 
+gem 'barber-emblem', git:'https://github.com/simcha/barber-emblem.git'
+gem 'emblem-source', git:'https://github.com/machty/emblem.js.git'
+
 gem 'user_agent_parser'
 gem 'high_voltage'
 

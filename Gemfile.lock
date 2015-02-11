@@ -1,3 +1,17 @@
+GIT
+  remote: https://github.com/machty/emblem.js.git
+  revision: e60b7c35e4e677ce87ebfcc1c7c4543150219246
+  specs:
+    emblem-source (0.3.18)
+
+GIT
+  remote: https://github.com/simcha/barber-emblem.git
+  revision: 8f3ef7e80e2385c66fecd037476ee815fab49c2e
+  specs:
+    barber-emblem (0.1.1)
+      barber (>= 0.4.1)
+      emblem-source
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -43,9 +57,6 @@ GEM
       ember-source
       execjs
       handlebars-source (>= 1.0.0.rc.4)
-    barber-emblem (0.1.2)
-      barber (>= 0.4.1)
-      emblem-source
     bcrypt (3.1.10)
     binding_of_caller (0.7.2)
       debug_inspector (>= 0.0.1)
@@ -89,7 +100,6 @@ GEM
     emblem-rails (0.2.2)
       barber-emblem (~> 0.1.1)
       ember-rails (>= 0.14.0)
-    emblem-source (0.3.18)
     erubis (2.7.0)
     ethon (0.7.2)
       ffi (>= 1.3.0)
@@ -252,12 +262,14 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  barber-emblem!
   byebug
   coffee-rails (~> 4.1.0)
   devise
   ember-rails
   ember-source
   emblem-rails
+  emblem-source!
   factory_girl_rails
   faker
   foundation-rails

@@ -33,7 +33,7 @@ table.variants
           td.adv= number-edit valueBinding="group.unit_cost_value" valueDefaultBinding="group.unit_cost_default" negative=false decimalPlaces=2 edit=true
           td.adv= number-edit valueBinding="group.total_cost" decimalPlaces=2
           td.adv= number-edit valueBinding="group.profit" decimalPlaces=2 edit=true
-          td.adv= number-edit valueBinding="group.margin" decimalPlaces=2 edit=true
+          td.adv= number-edit valueBinding="group.margin" decimalPlaces=0 edit=true
       tr{ bind-attr class=":foot blk.showFooter:show" }
         td: div: span= blk.quantity
         td
@@ -41,7 +41,7 @@ table.variants
         td.adv
         td.adv= number-edit valueBinding="blk.total_cost" decimalPlaces=2
         td.adv= number-edit valueBinding="blk.profit" decimalPlaces=2
-        td.adv= number-edit valueBinding="blk.margin" decimalPlaces=2
+        td.adv= number-edit valueBinding="blk.margin" decimalPlaces=0
   tfoot
     tr
       td
@@ -51,7 +51,7 @@ table.variants
       td.adv
       td.adv= number-edit valueBinding="total_cost" decimalPlaces=2
       td.adv= number-edit valueBinding="profit" decimalPlaces=2
-      td.adv= number-edit valueBinding="margin" decimalPlaces=2
+      td.adv= number-edit valueBinding="margin" decimalPlaces=0
 
 a href="#" click="addGroup" Add Group
 br
