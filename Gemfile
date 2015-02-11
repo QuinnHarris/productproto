@@ -34,13 +34,14 @@ gem 'sdoc', '~> 0.4.0',          group: :doc
 gem 'devise'
 gem 'sequel-devise'
 
-gem 'ember-rails'
-gem 'ember-source' #, '~> 1.8.1' # Fix to work on 1.9
 
+# Ember/Emblem
+gem 'ember-rails'
 gem 'emblem-rails'
 
-gem 'barber-emblem', git:'https://github.com/simcha/barber-emblem.git'
+# Needed to work on ember 1.9
 gem 'emblem-source', git:'https://github.com/machty/emblem.js.git'
+
 
 gem 'user_agent_parser'
 gem 'high_voltage'
