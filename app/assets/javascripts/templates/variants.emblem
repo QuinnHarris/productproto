@@ -27,13 +27,13 @@ table.variants
             each sub in controller
               label
                 = sub.name
-                = input type="number" valueBinding="sub.quantity" min=0 size="4"
-          td= number-edit valueBinding="group.unit_price_value" valueDefaultBinding="group.unit_price_default" negative=false decimalPlaces=2 edit=true
+                = input type="number" valueBinding="sub.quantity" min=0 size="4" tabindex=1
+          td= number-edit valueBinding="group.unit_price_value" valueDefaultBinding="group.unit_price_default" negative=false decimalPlaces=2 edit=true tabindex=2
           td= number-edit valueBinding="group.total_price" decimalPlaces=2
-          td.adv= number-edit valueBinding="group.unit_cost_value" valueDefaultBinding="group.unit_cost_default" negative=false decimalPlaces=2 edit=true
+          td.adv= number-edit valueBinding="group.unit_cost_value" valueDefaultBinding="group.unit_cost_default" negative=false decimalPlaces=2 edit=true tabindex=3
           td.adv= number-edit valueBinding="group.total_cost" decimalPlaces=2
-          td.adv= number-edit valueBinding="group.profit" decimalPlaces=2 edit=true
-          td.adv= number-edit valueBinding="group.margin" decimalPlaces=0 edit=true
+          td.adv= number-edit valueBinding="group.profit" valueDefaultBinding="group.profit_default" decimalPlaces=2 edit=true noNull=true tabindex=4
+          td.adv= number-edit valueBinding="group.margin" valueDefaultBinding="group.margin_default" decimalPlaces=0 edit=true noNull=true tabindex=5
       tr{ bind-attr class=":foot blk.showFooter:show" }
         td: div: span= blk.quantity
         td

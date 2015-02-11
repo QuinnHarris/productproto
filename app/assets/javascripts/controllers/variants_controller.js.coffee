@@ -193,6 +193,9 @@ Ink.VariantGroupController = Ember.ArrayController.extend
   total_cost: Ember.computed 'quantity', 'unit_cost', ->
     @get('quantity') * @get('unit_cost')
 
+  profit_default: Ember.computed 'quantity', 'unit_price_default', 'unit_cost_default', ->
+    @get('quantity') * (@get('unit_price_default') - @get('unit_cost_default'))
+
   profit: Ember.computed 'quantity', 'unit_price', 'unit_cost', (key, value) ->
     if arguments.length == 1
       @get('quantity') * (@get('unit_price') - @get('unit_cost'))
@@ -202,10 +205,13 @@ Ink.VariantGroupController = Ember.ArrayController.extend
       @set('unit_price_value', ret)
       value
 
+  margin_default: Ember.computed 'unit_price_default', 'unit_cost_default', ->
+    unit_price = @get('unit_price_default')
+    ((unit_price - @get('unit_cost_default')) * 100.0 / unit_price)
+
   margin: Ember.computed 'unit_price', 'unit_cost', (key, value) ->
     if arguments.length == 1
       unit_price = @get('unit_price')
-      return '' unless unit_price
       ((unit_price - @get('unit_cost')) * 100.0 / unit_price)
     else
       ret = (@get('unit_cost') / (1-parseFloat(value)/100.0))
