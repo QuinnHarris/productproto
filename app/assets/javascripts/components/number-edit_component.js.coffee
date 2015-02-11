@@ -16,21 +16,28 @@ Ink.NumberEditComponent = Ember.Component.extend
   classNameBindings: ['changed']
 
   changed: Ember.computed 'value', ->
-    return false unless @get('valueDefault')?
-    @get('value')?
+    valueDefault = @get('valueDefault')
+    return false unless valueDefault?
+    value = @get('value')
+    if valueDefault == value
+      @set('value', null)
+      value = null
+    value?
 
   valueComputed: Ember.computed 'value', 'valueDefault', ->
+    @get('value') ? @get('valueDefault')
+
+  getFormatedValue: ->
     decimalPlaces = @get('decimalPlaces')
-    value = @get('value') ? @get('valueDefault')
-    return null unless value?
-    value = parseFloat(value)
-    return value.toFixed(decimalPlaces) unless decimalPlaces == -1
+    value = @get('valueComputed')
+    return '' unless value?
+    value = value.toFixed(decimalPlaces) unless decimalPlaces == -1
     value
 
   # For internal use
   valueFormated: Ember.computed 'valueComputed', (key, value, old) ->
     if arguments.length == 1
-      @get('valueComputed') ? ''
+      @getFormatedValue()
     else
       decimalPlaces = @get('decimalPlaces')
       fvalue = parseFloat(value)
@@ -49,4 +56,4 @@ Ink.NumberEditComponent = Ember.Component.extend
     @set('oldValue', @get('valueFormated'))
 
   focusOut: ->
-    @set('valueFormated', @get('valueComputed'))
+    @set('valueFormated', @getFormatedValue())

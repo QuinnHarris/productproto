@@ -38,7 +38,7 @@ Ink.VariantsController = Ember.ArrayController.extend
   margin: Ember.computed 'total_price', 'total_cost', (key, value) ->
     unit_price = @get('total_price')
     return '' unless unit_price
-    ((unit_price - @get('total_cost')) * 100.0 / unit_price).toFixed(1)
+    ((unit_price - @get('total_cost')) * 100.0 / unit_price)
 
   propertiesValue: Ember.computed.alias('propertiesController.value')
 
@@ -143,7 +143,7 @@ Ink.VariantGroupsController = Ember.ArrayController.extend
   margin: Ember.computed 'total_price', 'total_cost', (key, value) ->
     unit_price = @get('total_price')
     return '' unless unit_price
-    ((unit_price - @get('total_cost')) * 100.0 / unit_price).toFixed(1)
+    ((unit_price - @get('total_cost')) * 100.0 / unit_price)
 
 
 Ink.VariantGroupController = Ember.ArrayController.extend
@@ -194,20 +194,26 @@ Ink.VariantGroupController = Ember.ArrayController.extend
     @get('quantity') * @get('unit_cost')
 
   profit: Ember.computed 'quantity', 'unit_price', 'unit_cost', (key, value) ->
-    if value
-      @set('unit_price_value',
-           @get('unit_cost') + parseFloat(value) / @get('quantity') )
-    else
+    if arguments.length == 1
       @get('quantity') * (@get('unit_price') - @get('unit_cost'))
+    else
+      ret = @get('unit_cost') + parseFloat(value) / @get('quantity')
+      ret -= (ret % 0.01)
+      @set('unit_price_value', ret)
+      value
 
   margin: Ember.computed 'unit_price', 'unit_cost', (key, value) ->
-    if value
-      @set('unit_price_value',
-           (@get('unit_cost') / (1-parseFloat(value)/100.0)).toFixed(3) )
-    else
+    if arguments.length == 1
       unit_price = @get('unit_price')
       return '' unless unit_price
-      ((unit_price - @get('unit_cost')) * 100.0 / unit_price).toFixed(1)
+      ((unit_price - @get('unit_cost')) * 100.0 / unit_price)
+    else
+      ret = (@get('unit_cost') / (1-parseFloat(value)/100.0))
+      ret -= (ret % 0.01)
+      @set('unit_price_value', ret)
+      value
+
+
 
 Ink.VariantController = Ember.ObjectController.extend
   #quantity: 0

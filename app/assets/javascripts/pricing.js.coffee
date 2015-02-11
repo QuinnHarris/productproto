@@ -92,5 +92,7 @@ class window.PricingBase
         break if br.n > quantity
         result = br.v
       sum += result if result
-    sum
+
+    # Hard code rounding
+    sum - (sum % 0.01)
 
