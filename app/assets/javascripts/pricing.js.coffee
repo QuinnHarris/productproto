@@ -57,14 +57,23 @@ class window.PricingBase
 
       { n: qty, v: func.apply(this, (l[0].v for l in meta_list)) }
 
-  _applyStack: (list, predicate, cost_basis_list = []) ->
+  _applyStack: (list, predicate, cost_basis_list = [], axis_list = []) ->
     stack = @_selectStack(list, predicate)
-    for input in stack.mapBy('input').uniq()
-      elem = cost_basis_list.find((cb) -> cb.input == input)
+
+    # Find unique input mult combinations
+    for entry in stack
+      elem = [entry.input, (entry.mult ? [0])]
+      unless axis_list.find((e) -> Em.isEqual(e, elem))
+        axis_list.push(elem)
+
+    basis = for e in axis_list
+      input = e[0]
+      mult = e[1]
+      elem = cost_basis_list.find((cb) -> Em.isEqual(cb.input, input) && Em.isEqual(cb.mult, mult))
       cost_basis = elem.breaks if elem
       cost_basis ?= []
       basis = cost_basis
-      for elem in stack.filter((e) -> e.input == input)
+      for elem in stack.filter((e) -> Em.isEqual(e.input, input) && Em.isEqual(e.mult ? [0], mult))
         meta_list = [basis, elem.breaks, cost_basis].compact()
         basis = switch elem.op
           when 'add'
@@ -75,12 +84,15 @@ class window.PricingBase
             @_combineBreaks meta_list, ((a, b, c) -> (a - c)*b + c)
           else
             elem.breaks
-      { input: input, breaks: basis }
+      { input: input, mult: mult, breaks: basis }
+
+    { basis: basis, axis: axis_list }
 
   getCostPrice: (predicate) ->
-    cost_basis = @_applyStack(@data.costs, predicate)
-    price_basis = @_applyStack(@data.prices, predicate, cost_basis)
-    { costs: cost_basis, prices: price_basis }
+    costs = @_applyStack(@data.costs, predicate)
+    prices = @_applyStack(@data.prices, predicate, costs.basis, costs.axis)
+    axis = prices.axis.map((e) -> { input: e[0], mult: e[1] })
+    { costs: costs.basis, prices: prices.basis, axis: axis }
 
   getPrice: (basis, quantity_list) ->
     sum = 0
@@ -92,7 +104,5 @@ class window.PricingBase
         break if br.n > quantity
         result = br.v
       sum += result if result
-
-    # Hard code rounding
-    sum - (sum % 0.01)
+    sum
 

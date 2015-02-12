@@ -3,12 +3,6 @@
 }
 
 table.variants {
-  table-layout: fixed;
-
-  thead td {
-    text-align: center;
-  }
-
   tbody {
     //tr.none { display: none; }
     //&.selected tr { display: table-row; }
@@ -36,8 +30,18 @@ table.variants {
       transform-origin: 0 0;
       transition: height 0.6s, transform 0.6s;
     }
+  }
+}
 
-    tr.foot td span {
+table.pricing {
+  table-layout: fixed;
+
+  thead td {
+    text-align: center;
+  }
+
+  tbody {
+     tr.foot td span {
       font-weight: bold;
     }
 

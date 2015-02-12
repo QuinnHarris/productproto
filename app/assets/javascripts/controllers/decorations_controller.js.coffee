@@ -18,8 +18,76 @@ Ink.DecorationsController = Ember.ObjectController.extend
     technique.class == 'number'
 
 
+Ink.DecorationController = Ember.ObjectController.extend
+  properties: Ember.computed 'parentController.techniqueId', ->
+    [@get('parentController.techniqueId')]
+
+  basis: Ember.computed 'properties', ->
+    props = [-2].concat(@get('properties'))
+    product_data.getCostPrice(props)
+
+  quantityBasis: Ember.computed 'count', 'parentController.quantity', ->
+    [@get('count'), @get('parentController.quantity')]
+
+  entryList: Ember.computed 'basis', ->
+    @get('basis').axis
+
+
+Ink.DecorationEntryController = Ember.ObjectController.extend
+  quantityBasis: Ember.computed.alias('parentController.quantityBasis')
+
+  description: Ember.computed 'mult', ->
+    mult = @get('mult')
+    if mult.length == 1 and mult[0] == 0
+      'Setup'
+    else
+      'Unit'
+
+  quantity: Ember.computed 'mult', 'quantityBasis', ->
+    qtyBasis = @get('quantityBasis')
+    mult = @get('mult')
+    mult.reduce(( (a, i) -> a * (qtyBasis[i] ? 1) ), 1)
+
+  quantityShow: Ember.computed 'mult', 'quantityBasis', ->
+    qtyBasis = @get('quantityBasis')
+    mult = @get('mult')
+    qty = mult.map((i) -> qtyBasis[i] ? 1)
+    return qty[0] if qty.length == 1
+    qty = qty.filter((e) -> e != 1)
+    return qty[0] if qty.length == 1
+    qty.join('x') + '=' + @get('quantity')
+
+  unit_price_default: Ember.computed 'quantity', ->
+    basis = @get('parentController.basis').prices
+    input = @get('input')
+    mult = @get('mult')
+    basis = basis.filter((b) -> b.input == input && b.mult == mult)
+    qtyBasis = @get('quantityBasis')
+    product_data.getPrice(basis, qtyBasis)
+
+  unit_price: Ember.computed 'unit_price_value', 'unit_price_default', ->
+    @get('unit_price_value') ? @get('unit_price_default')
+
+  total_price: Ember.computed 'quantity', 'unit_price', ->
+    @get('quantity') * @get('unit_price')
+
+  unit_cost_default: Ember.computed 'quantity', ->
+    basis = @get('parentController.basis').costs
+    input = @get('input')
+    mult = @get('mult')
+    basis = basis.filter((b) -> b.input == input && b.mult == mult)
+    qtyBasis = @get('quantityBasis')
+    product_data.getPrice(basis, qtyBasis)
+
+  unit_cost: Ember.computed 'unit_cost_value', 'unit_cost_default', ->
+    @get('unit_cost_value') ? @get('unit_cost_default')
+
+  total_cost: Ember.computed 'quantity', 'unit_price', ->
+    @get('quantity') * @get('unit_cost')
+
+
 Ink.DecorationUnspecifiedProps = { id: 0, standard_id: 0, name: 'UN', color: 'white' }
-Ink.DecorationColorsController = Ember.ObjectController.extend
+Ink.DecorationColorsController = Ink.DecorationController.extend
   initColors: (->
     @set 'colors', Ember.ArrayProxy.create({content: [ Ember.Object.create(Ink.DecorationUnspecifiedProps) ]})
   ).on('init')
@@ -31,9 +99,6 @@ Ink.DecorationColorsController = Ember.ObjectController.extend
     @get('colors').removeObject object
 
   count: Ember.computed.alias 'colors.length'
-
-  quantityBasis: Ember.computed 'count', 'parentController.quantity', ->
-    [@get('count'), @get('parentController.quantity')]
 
   actions:
     addColor: ->

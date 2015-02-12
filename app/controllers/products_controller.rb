@@ -16,8 +16,8 @@ class ProductsController < ApplicationController
     locations = %w(Front Back).map { |n| { id: prop_id += 1, name: n } }
     techniques = %w(Screen\ Print Photo\ Print Embroidery).map { |n| { id: prop_id += 1, name: n } }
     screen_standard_colors = [
-      { name: 'Black', color: '000000'},
       { name: 'White', color: 'FFFFFF'},
+      { name: 'Black', color: '000000'},
       { name: 'Red', color: 'FF0000' },
       { name: 'Green', color: '00FF00' },
       { name: 'Blue', color: '0000FF' },
@@ -25,7 +25,8 @@ class ProductsController < ApplicationController
       { name: 'Cyan', color: '00FFFF' },
       { name: 'Magenta', color: 'FF00FF' },
     ]
-    techniques[0].merge!(class: 'color', standard_colors: screen_standard_colors.map { |n| n.merge(id: prop_id += 1) } )
+    screen_standard_colors = screen_standard_colors.map { |n| n.merge(id: prop_id += 1) }
+    techniques[0].merge!(class: 'color', standard_colors: screen_standard_colors )
     techniques[2].merge!( class: 'number', desc: 'stiches' )
     decorations = locations.map { |loc| techniques.map { |tech| { id: prop_id += 1, location: loc[:id], technique: tech[:id] } } }.flatten
     locations << { id: prop_id += 1, name: 'Front Pocket' }
@@ -54,9 +55,12 @@ class ProductsController < ApplicationController
         # Closout: Kiwi,
         { predicate: [[30,31,32]], priority: 2, input: 1, breaks: [{ n: 1, v: 1.64 }] },
 
-        { predicate: [techniques[0][:id]], priority: 1, input: 0, breaks: [{ n: 10, v: 40.0 }] },
-        { predicate: [techniques[0][:id]], priority: 1, input: [0,1], breaks: [{ n: 10, v: 0.40 }] },
+        { predicate: [techniques[0][:id]], priority: 1, input: 1, breaks: [{ n: 1, v: 40.0 }] },
+        { predicate: [techniques[0][:id]], priority: 1, input: 1, mult: [0,1], breaks: [{ n: 1, v: 0.40 }] },
         { predicate: [techniques[1][:id]], priority: 1, input: 1, breaks: [{ n: 1, v: 1.20 }] },
+
+        #{ predicate: [techniques[0][:id], screen_standard_colors[0][:id]],
+        #  priority: 1, input: 1, mult: 1, breaks: [{ n: 1, v: 0.40 }] },
 
         { predicate: [meta[0][:id]], priority: 1, breaks: [{ fixed: 16.0 }] }
     ]
@@ -64,8 +68,9 @@ class ProductsController < ApplicationController
     @prices = [
         { predicate: [-1], priority: 10, op: :mult, input: 1, breaks: [{ n: 1, v: 1.4285714285714286 }] },
 
-        { predicate: [-2], priority: 10, op: :mult, input: 0, breaks: [{ n: 1, v: 1.25 }] },
         { predicate: [-2], priority: 10, op: :mult, input: 1, breaks: [{ n: 1, v: 1.25 }] },
+        { predicate: [-2], priority: 10, op: :mult, input: 1, mult: [0,1], breaks: [{ n: 1, v: 1.25 }] },
+
     ]
 
     @images = @colors.map do |c|

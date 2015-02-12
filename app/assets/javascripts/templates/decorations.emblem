@@ -3,36 +3,7 @@
   .technique
     = option-list items=currentLocations class="locations"
 
-  .location
-    if useColors
-      = render 'decorationColors' 'technique'
-    if useNumber
-      = render 'decorationNumber' 'technique'
-
-  .detail
-    table
-      thead
-        tr
-          td rowspan="2" Description
-          td rowspan="2" Quantity
-          td colspan="2" Price
-          td.adv colspan="2" Cost
-          td.adv rowspan="2" Profit
-          td.adv rowspan="2" Margin
-        tr
-          td Unit
-          td Total
-          td.adv Unit
-          td.adv Total
-      tbody
-
-      tfoot
-        tr
-          td
-          td= count
-          td
-          td= number-edit valueBinding="total_price" decimalPlaces=2
-          td.adv
-          td.adv= number-edit valueBinding="total_cost" decimalPlaces=2
-          td.adv= number-edit valueBinding="profit" decimalPlaces=2
-          td.adv= number-edit valueBinding="margin" decimalPlaces=2
+  if useColors
+    = render 'decorationColors' 'technique'
+  if useNumber
+    = render 'decorationNumber' 'technique'

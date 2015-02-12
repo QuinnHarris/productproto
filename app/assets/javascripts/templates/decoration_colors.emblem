@@ -1,15 +1,18 @@
-| Colors:
-ul.options.colors
-  each color in colors itemController="decorationColor"
-    li style=color.styleAttr click="open"
-      = color.name
-      if color.opened
-        .overlay click="close bubbles=false"
-        .dialog
-          = option-list items=color.standardColors selected=color.selectedColor allowNull="true"
-          .custom
-            = view Ember.TextField valueBinding="color.customValue"
-          unless color.single
-            a href="#" click="remove" Remove
+.location
+  | Colors:
+  ul.options.colors
+    each color in colors itemController="decorationColor"
+      li style=color.styleAttr click="open"
+        = color.name
+        if color.opened
+          .overlay click="close bubbles=false"
+          .dialog
+            = option-list items=color.standardColors selected=color.selectedColor allowNull="true"
+            .custom
+              = view Ember.TextField valueBinding="color.customValue"
+            unless color.single
+              a href="#" click="remove" Remove
 
-a href="#" click="addColor" Add Color
+  a href="#" click="addColor" Add Color
+
+= partial 'decoration_entries'

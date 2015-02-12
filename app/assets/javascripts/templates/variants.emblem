@@ -1,4 +1,4 @@
-table.variants
+table.pricing.variants
   thead
     tr
       each name in optionTypes

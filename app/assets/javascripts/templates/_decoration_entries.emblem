@@ -1,0 +1,36 @@
+.detail
+  table.pricing
+    thead
+      tr
+        td rowspan="2" Description
+        td rowspan="2" Quantity
+        td colspan="2" Price
+        td.adv colspan="2" Cost
+        td.adv rowspan="2" Profit
+        td.adv rowspan="2" Margin
+      tr
+        td Unit
+        td Total
+        td.adv Unit
+        td.adv Total
+    tbody
+      each group in entryList itemController='decorationEntry'
+        tr
+          td= group.description
+          td= group.quantityShow
+          td= number-edit valueBinding="group.unit_price_value" valueDefaultBinding="group.unit_price_default" negative=false decimalPlaces=2 edit=true tabindex=2
+          td= number-edit valueBinding="group.total_price" decimalPlaces=2
+          td.adv= number-edit valueBinding="group.unit_cost_value" valueDefaultBinding="group.unit_cost_default" negative=false decimalPlaces=2 edit=true tabindex=3
+          td.adv= number-edit valueBinding="group.total_cost" decimalPlaces=2
+          td.adv= number-edit valueBinding="group.profit" valueDefaultBinding="group.profit_default" decimalPlaces=2 edit=true noNull=true tabindex=4
+          td.adv= number-edit valueBinding="group.margin" valueDefaultBinding="group.margin_default" decimalPlaces=0 edit=true noNull=true tabindex=5
+    tfoot
+      tr
+        td
+        td= count
+        td
+        td= number-edit valueBinding="total_price" decimalPlaces=2
+        td.adv
+        td.adv= number-edit valueBinding="total_cost" decimalPlaces=2
+        td.adv= number-edit valueBinding="profit" decimalPlaces=2
+        td.adv= number-edit valueBinding="margin" decimalPlaces=2
