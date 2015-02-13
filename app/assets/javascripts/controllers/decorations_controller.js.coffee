@@ -32,6 +32,11 @@ Ink.DecorationController = Ember.ObjectController.extend
   entryList: Ember.computed 'basis', ->
     @get('basis').axis
 
+  #total_price: Ember.computed 'entryList', ->
+  #  @get('entryList').reduce ((sum, v) -> sum + v.get('total_price')), 0
+  #total_cost: Ember.computed.sum 'entryList.@each.total_cost'
+  #profit: Ember.computed.sum 'entryList.@each.profit'
+
 
 Ink.DecorationEntryController = Ember.ObjectController.extend
   quantityBasis: Ember.computed.alias('parentController.quantityBasis')
@@ -55,7 +60,7 @@ Ink.DecorationEntryController = Ember.ObjectController.extend
     return qty[0] if qty.length == 1
     qty = qty.filter((e) -> e != 1)
     return qty[0] if qty.length == 1
-    qty.join('x') + '=' + @get('quantity')
+    qty.join(' x ') + ' = ' + @get('quantity')
 
   unit_price_default: Ember.computed 'quantity', ->
     basis = @get('parentController.basis').prices
@@ -84,6 +89,32 @@ Ink.DecorationEntryController = Ember.ObjectController.extend
 
   total_cost: Ember.computed 'quantity', 'unit_price', ->
     @get('quantity') * @get('unit_cost')
+
+  profit_default: Ember.computed 'quantity', 'unit_price_default', 'unit_cost_default', ->
+    @get('quantity') * (@get('unit_price_default') - @get('unit_cost_default'))
+
+  profit: Ember.computed 'quantity', 'unit_price', 'unit_cost', (key, value) ->
+    if arguments.length == 1
+      @get('quantity') * (@get('unit_price') - @get('unit_cost'))
+    else
+      ret = @get('unit_cost') + parseFloat(value) / @get('quantity')
+      ret -= (ret % 0.01)
+      @set('unit_price_value', ret)
+      value
+
+  margin_default: Ember.computed 'unit_price_default', 'unit_cost_default', ->
+    unit_price = @get('unit_price_default')
+    ((unit_price - @get('unit_cost_default')) * 100.0 / unit_price)
+
+  margin: Ember.computed 'unit_price', 'unit_cost', (key, value) ->
+    if arguments.length == 1
+      unit_price = @get('unit_price')
+      ((unit_price - @get('unit_cost')) * 100.0 / unit_price)
+    else
+      ret = (@get('unit_cost') / (1-parseFloat(value)/100.0))
+      ret -= (ret % 0.01)
+      @set('unit_price_value', ret)
+      value
 
 
 Ink.DecorationUnspecifiedProps = { id: 0, standard_id: 0, name: 'UN', color: 'white' }

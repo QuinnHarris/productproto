@@ -1,4 +1,4 @@
 if edit
-  = view 'numberField' valueBinding="valueFormated" size="4" onEvent="keyPress" negativeBinding="negative" decimalPlacesBinding="decimalPlaces" tabindexBinding="tabindex"
+  = view 'numberField' valueBinding="valueFormated" size="4" onEvent="keyPress" negativeBinding="negative" tabindexBinding="tabindex"
 else
   span= valueFormated

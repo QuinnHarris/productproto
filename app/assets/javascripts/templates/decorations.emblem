@@ -1,8 +1,30 @@
-.decorations
-  = option-list items=techniques class="techniques" selectedId=techniqueId selected=technique
-  .technique
-    = option-list items=currentLocations class="locations"
+tbody
+  tr.null
+    th colspan="5"
+      .decorations.overflow
+        = option-list items=techniques class="techniques" selectedId=techniqueId selected=technique
+    td
+    td
+    td
+    td
+    td
+    td
+    td
 
+  tr.null
+    th.filler
+    th colspan="4"
+      .locations.overflow
+        = option-list items=currentLocations class="locations"
+    td
+    td
+    td
+    td
+    td
+    td
+    td
+
+tbody
   if useColors
     = render 'decorationColors' 'technique'
   if useNumber

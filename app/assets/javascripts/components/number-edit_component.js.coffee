@@ -2,7 +2,7 @@
 
 Ink.NumberFieldView = Ember.TextField.extend
   negative: true
-  decimalPlaces: -1
+  #decimalPlaces: -1
 
   didInsertElement: ->
     @_super()

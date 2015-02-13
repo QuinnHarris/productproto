@@ -2,8 +2,31 @@
 
 hr
 
-= outlet "groups"
+table.pricing.variants
+  thead
+    tr
+      td rowspan="2" colspan="3" Prop
+      td rowspan="2" colspan="3" Quantity
+      td colspan="2" Price
+      td.adv colspan="2" Cost
+      td.adv rowspan="2" Profit
+      td.adv rowspan="2" Margin
+    tr
+      td Unit
+      td Total
+      td.adv Unit
+      td.adv Total
+  = outlet "groups"
 
-hr
+  = outlet "decorations"
 
-= outlet "decorations"
+  tfoot
+    tr
+      th colspan="5" FOOTER
+      td
+      td colspan="2"
+        = number-edit valueBinding="total_price" decimalPlaces=2
+      td.adv colspan="2"
+        = number-edit valueBinding="total_cost" decimalPlaces=2
+      td.adv= number-edit valueBinding="profit" decimalPlaces=2
+      td.adv= number-edit valueBinding="margin" decimalPlaces=0

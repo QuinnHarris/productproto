@@ -119,6 +119,7 @@ Ink.VariantGroupsController = Ember.ArrayController.extend
     @get('length') + 2
 
   showFooter: Ember.computed '@each.quantity', ->
+    return null if @get('parentController.length') == 1
     @get('@each.quantity').filter((v) -> v > 0).length > 1
 
   options: Ember.computed 'properties', ->

@@ -2,8 +2,12 @@
   //background-color: green;
 }
 
-table.variants {
-  tbody {
+
+table.pricing {
+  table-layout: fixed;
+  border-collapse: collapse;
+
+  tbody.variant {
     //tr.none { display: none; }
     //&.selected tr { display: table-row; }
 
@@ -16,39 +20,57 @@ table.variants {
       }
     }
 
+/*
     // Collapse animation
     &.selected tr td div, tr.show td div {
-      height: 1.8rem;
+      height: 1.8rem; // Breaks proper wrap
       transform: scaleY(1)
     }
 
-    tr td div, &:only-of-type tr.foot td div {
-      line-height: 1.8rem; /* Kludge to vertically align text */
+    tr td div, tr.foot td div {
+      line-height: 1.8rem; // Kludge to vertically align text
       overflow: hidden;
       height: 0;
       transform: scaleY(0);
       transform-origin: 0 0;
       transition: height 0.6s, transform 0.6s;
     }
+    */
   }
-}
 
-table.pricing {
-  table-layout: fixed;
+  tr td {
+    border-right: thin solid grey;
+  }
+
+  tr.null {
+    th {
+      padding: 0;
+      vertical-align: top;
+      > div {
+        position: absolute;
+      }
+    }
+    td {
+      border-right: thin solid #CCC;
+    }
+  }
 
   thead td {
     text-align: center;
   }
 
   tbody {
-     tr.foot td span {
+    tr.foot td span {
       font-weight: bold;
     }
 
     tr {
       font-size: 1em;
 
+      th.filler { background: #DDD; }
+
       td {
+
         padding: 0;
         text-align: right;
 
@@ -83,9 +105,14 @@ table.pricing {
     }
   }
 
-  tfoot td {
-    text-align: right;
-    padding: 0.5rem;
+  tbody.foot {
+    background: #DDD;
+    td {
+      text-align: right;
+    }
+
+
+    //padding: 0.5rem;
   }
 }
 
@@ -142,6 +169,17 @@ ul.colors {
     height: 2.6em;
     min-width: 2em;
     padding: 0.4em;
+    // Show through bottom line
+    //mix-blend-mode: darken;
+
+
+    .dialog {
+      //max-width: 75%;
+      position: absolute;
+      background: white;
+      border: thin solid black;
+      //mix-blend-mode: normal;
+    }
   }
 
   .overlay {
@@ -150,12 +188,5 @@ ul.colors {
     position: fixed;
     top: 0;
     left: 0;
-  }
-
-  .dialog {
-    max-width: 75%;
-    position: absolute;
-    background: white;
-    border: thin solid black;
   }
 }
