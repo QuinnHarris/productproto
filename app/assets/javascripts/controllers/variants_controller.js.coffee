@@ -146,6 +146,12 @@ Ink.VariantGroupsController = Ember.ArrayController.extend
     return '' unless unit_price
     ((unit_price - @get('total_cost')) * 100.0 / unit_price)
 
+  #quantityChange: (amount) ->
+  #  fo = @get('firstObject.firstObject')
+  #  qty = fo.get('quantity')
+  #  return if qty == 0
+  #  fo.set('quantity', qty - amount)
+
 
 Ink.VariantGroupController = Ember.ArrayController.extend
   itemController: 'variant'
@@ -244,11 +250,14 @@ Ink.VariantController = Ember.ObjectController.extend
       property_ids: properties
     )
 
-  quantity: Ember.computed 'variant', (key, value) ->
+  quantity: Ember.computed 'variant', (key, value, oldValue) ->
     variant = @get('variant')
-    if value
-      value = parseInt(value)
-      variant.set('quantity', value)
-      value
-    else
+    if arguments.length == 1
       variant.get('quantity')
+    else
+      value = parseInt(value)
+      value = 0 if isNaN(value)
+      variant.set('quantity', value)
+      #unless @get('id') == 1 && (amount = value - parseInt(oldValue)) != 0
+      #  @get('parentController.parentController').quantityChange(amount)
+      value

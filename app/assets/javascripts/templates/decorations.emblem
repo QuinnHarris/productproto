@@ -15,6 +15,7 @@ tbody
     th.filler
     th colspan="4"
       .locations.overflow
+        | Locations:
         = option-list items=currentLocations class="locations"
     td
     td

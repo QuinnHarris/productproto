@@ -118,6 +118,7 @@ table.pricing {
 
 
 ul.options {
+  display: inline-block;
   list-style: none;
   margin: 0;
 
@@ -162,8 +163,6 @@ ul.swatches li, .swatch {
 }
 
 ul.colors {
-  display: inline-block;
-
   li {
     border: thin solid black;
     height: 2.6em;

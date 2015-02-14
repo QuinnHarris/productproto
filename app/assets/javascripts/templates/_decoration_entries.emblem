@@ -1,4 +1,4 @@
-each group in entryList itemController='decorationEntry'
+each group in entryList
   tr
     th.filler colspan="2"
     th.filler colspan="2"
@@ -20,4 +20,4 @@ tr.foot
   td.adv
   td.adv= number-edit valueBinding="total_cost" decimalPlaces=2
   td.adv= number-edit valueBinding="profit" decimalPlaces=2
-  td.adv= number-edit valueBinding="margin" decimalPlaces=2
+  td.adv= number-edit valueBinding="margin" decimalPlaces=0

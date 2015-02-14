@@ -30,12 +30,22 @@ Ink.DecorationController = Ember.ObjectController.extend
     [@get('count'), @get('parentController.quantity')]
 
   entryList: Ember.computed 'basis', ->
-    @get('basis').axis
+    @get('basis').axis.map (model) =>
+      Ink.DecorationEntryController.create
+        target: @
+        parentController: @
+        model: model
 
-  #total_price: Ember.computed 'entryList', ->
-  #  @get('entryList').reduce ((sum, v) -> sum + v.get('total_price')), 0
-  #total_cost: Ember.computed.sum 'entryList.@each.total_cost'
-  #profit: Ember.computed.sum 'entryList.@each.profit'
+  total_price: Ember.computed 'entryList', ->
+    @get('entryList').reduce ((sum, v) -> sum + v.get('total_price')), 0
+  total_cost: Ember.computed 'entryList', ->
+    @get('entryList').reduce ((sum, v) -> sum + v.get('total_cost')), 0
+  profit: Ember.computed 'total_price', 'total_cost', ->
+    @get('total_price') - @get('total_cost')
+  margin: Ember.computed 'total_price', 'total_cost', (key, value) ->
+    unit_price = @get('total_price')
+    return '' unless unit_price
+    ((unit_price - @get('total_cost')) * 100.0 / unit_price)
 
 
 Ink.DecorationEntryController = Ember.ObjectController.extend
