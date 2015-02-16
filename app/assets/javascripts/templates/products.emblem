@@ -5,7 +5,7 @@ hr
 table.pricing.variants
   thead
     tr
-      td rowspan="2" colspan="3" Prop
+      td rowspan="2" colspan="3"
       td rowspan="2" colspan="3" Quantity
       td colspan="2" Price
       td.adv colspan="2" Cost

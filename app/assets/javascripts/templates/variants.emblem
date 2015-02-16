@@ -34,7 +34,7 @@ tbody.foot
   tr
     th colspan="5"
       a href="#" click="addGroup" Add Group
-      = propertiesValue
+      span style="display: none;" = propertiesValue
     td: span= quantity
     td
     td= number-edit valueBinding="total_price" decimalPlaces=2

@@ -1,7 +1,7 @@
 each item in items itemView="optionListItem"
   if item.image
-    img src=item.image
     span class=item.image_tint = item.name
+    img src=item.image
   else
     div
       = item.name

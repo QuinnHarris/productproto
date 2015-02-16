@@ -81,8 +81,9 @@ Ink.VariantsController = Ember.ArrayController.extend
   actions:
     addGroup: ->
       next_prop = for list, i in @get('propertiesController.availableIds')
-        list.find (id) ->
-          !@find (c) -> c.get('properties')[i] == id
+        list.find (id) =>
+          obj = @find (c) -> c.get('properties')[i] == id
+          !obj
 
       @addObject next_prop
       @set('current', @get('lastObject'))
@@ -100,7 +101,7 @@ Ink.VariantGroupsController = Ember.ArrayController.extend
 
   # Content usually doesn't change when parent properties change
   # So don't change content if not necissary for a noticable performace improvement
-  nullGroup: [{ id: 1, name: '?' }]
+  nullGroup: [{ id: 1, name: 'Unknown' }]
   setGroups: (->
     current = @get('content')
     expected = [@get('nullGroup')].concat product_data.variantGroups(@get('properties'))
@@ -118,15 +119,16 @@ Ink.VariantGroupsController = Ember.ArrayController.extend
   rowSpan: Ember.computed 'this.[]', ->
     @get('length') + 2
 
-  showFooter: Ember.computed '@each.quantity', ->
+  showFooter: Ember.computed '@each.quantity', 'selected', 'parentController.length', ->
     return null if @get('parentController.length') == 1
+    return true if @get('selected')
     @get('@each.quantity').filter((v) -> v > 0).length > 1
 
   options: Ember.computed 'properties', ->
     properties = @get('properties')
     for prop, i in product_data.data.properties
       id = properties[i]
-      prop.list.findBy('id', id)
+      prop.list.findBy('id', id) ? { name: 'Not Specified' }
 
   imageSrc: Ember.computed 'options', ->
     options = @get('options')
@@ -158,11 +160,6 @@ Ink.VariantGroupController = Ember.ArrayController.extend
   needs: ['variantGroup']
 
   parentProperties: Ember.computed.alias('parentController.properties')
-
-  # why doesn't @first work in the template?
-  # Not used now with dummy first row
-  firstRow: Ember.computed ->
-    @model[0].name == '?'
 
   quantity: Ember.computed.sum '@each.quantity'
 

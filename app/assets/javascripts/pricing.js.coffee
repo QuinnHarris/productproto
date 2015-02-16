@@ -51,7 +51,7 @@ class window.PricingBase
       for l in m
         qtys.push l.n if l.n >= min
 
-    for qty in qtys.uniq().sort()
+    for qty in qtys.uniq()
       for list in meta_list
         list.shift() if list[1] && list[1].n == qty
 

@@ -55,8 +55,8 @@ class ProductsController < ApplicationController
         # Closout: Kiwi,
         { predicate: [[30,31,32]], priority: 2, input: 1, breaks: [{ n: 1, v: 1.64 }] },
 
-        { predicate: [techniques[0][:id]], priority: 1, input: 1, breaks: [{ n: 1, v: 40.0 }] },
-        { predicate: [techniques[0][:id]], priority: 1, input: 1, mult: [0,1], breaks: [{ n: 1, v: 0.40 }] },
+        { predicate: [techniques[0][:id]], priority: 1, input: 1, breaks: [{ n: 1, v: 40.0 }, { n: 50, v: 0.0 }] },
+        { predicate: [techniques[0][:id]], priority: 1, input: 1, mult: [0,1], breaks: [{ n: 1, v: 4.00 }, { n: 2, v: 2.0 }, { n: 4, v: 1.0 }, { n: 6, v: 0.8 }, { n: 12, v: 0.5 }] },
         { predicate: [techniques[1][:id]], priority: 1, input: 1, breaks: [{ n: 1, v: 1.20 }] },
 
         #{ predicate: [techniques[0][:id], screen_standard_colors[0][:id]],
@@ -66,7 +66,7 @@ class ProductsController < ApplicationController
     ]
 
     @prices = [
-        { predicate: [-1], priority: 10, op: :mult, input: 1, breaks: [{ n: 1, v: 1.4285714285714286 }] },
+        { predicate: [-1], priority: 10, op: :mult, input: 1, breaks: [{ n: 1, v: 1.4285714285714286 }, { n: 144, v: 1.25 }] },
 
         { predicate: [-2], priority: 10, op: :mult, input: 1, breaks: [{ n: 1, v: 1.25 }] },
         { predicate: [-2], priority: 10, op: :mult, input: 1, mult: [0,1], breaks: [{ n: 1, v: 1.25 }] },

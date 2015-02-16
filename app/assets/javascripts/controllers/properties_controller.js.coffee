@@ -15,4 +15,4 @@ Ink.PropertyController = Ember.ObjectController.extend
   property: null
 
   fullList: Ember.computed ->
-    [{ id: null, name: 'Unspec' }].concat @get('list')
+    [{ id: null, name: 'Not Specified' }].concat @get('list')

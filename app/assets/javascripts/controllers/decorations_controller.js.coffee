@@ -36,9 +36,9 @@ Ink.DecorationController = Ember.ObjectController.extend
         parentController: @
         model: model
 
-  total_price: Ember.computed 'entryList', ->
+  total_price: Ember.computed 'quantityBasis', ->
     @get('entryList').reduce ((sum, v) -> sum + v.get('total_price')), 0
-  total_cost: Ember.computed 'entryList', ->
+  total_cost: Ember.computed 'quantityBasis', ->
     @get('entryList').reduce ((sum, v) -> sum + v.get('total_cost')), 0
   profit: Ember.computed 'total_price', 'total_cost', ->
     @get('total_price') - @get('total_cost')
@@ -69,7 +69,7 @@ Ink.DecorationEntryController = Ember.ObjectController.extend
     qty = mult.map((i) -> qtyBasis[i] ? 1)
     return qty[0] if qty.length == 1
     qty = qty.filter((e) -> e != 1)
-    return qty[0] if qty.length == 1
+    return qty[0] ? 1 if qty.length <= 1
     qty.join(' x ') + ' = ' + @get('quantity')
 
   unit_price_default: Ember.computed 'quantity', ->

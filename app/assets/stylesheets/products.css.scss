@@ -20,9 +20,9 @@ table.pricing {
       }
     }
 
-/*
+
     // Collapse animation
-    &.selected tr td div, tr.show td div {
+    &.selected td div, tr.show td div, tr.show.foot td div {
       height: 1.8rem; // Breaks proper wrap
       transform: scaleY(1)
     }
@@ -35,7 +35,6 @@ table.pricing {
       transform-origin: 0 0;
       transition: height 0.6s, transform 0.6s;
     }
-    */
   }
 
   tr td {
@@ -59,11 +58,13 @@ table.pricing {
     text-align: center;
   }
 
-  tbody {
-    tr.foot td span {
+  tbody tr.foot, tbody.foot tr {
+    td span {
       font-weight: bold;
     }
+  }
 
+  tbody {
     tr {
       font-size: 1em;
 
@@ -140,26 +141,35 @@ ul.swatches li, .swatch {
   margin: 0 auto;
 
   div {
-    width: 68px; height: 36px;
+    display: inline-block;
+    width: 70px; height: 36px;
+    border: 1px solid grey;
+    margin: 0;
   }
 
   span {
     position: absolute;
     left: 0;
     right: 0;
-    padding: 1px 3px;
-    text-align: center;
     width: 100%;
-    font-size: 14px;
-    font-weight: normal;
-    line-height: 15px;
-    z-index: 1;
 
     color: white;
     &.light { color: black; }
   }
 
-  img { z-index: 0; }
+  span, div {
+    vertical-align: middle;
+    padding: 1px 3px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 15px;
+    z-index: 1;
+  }
+
+  img {
+    z-index: 0;
+  }
 }
 
 ul.colors {
