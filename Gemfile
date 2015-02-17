@@ -36,6 +36,7 @@ gem 'sequel-devise'
 
 
 # Ember/Emblem
+gem 'ember-source', '~> 1.9.0' # Fixed until emblem supports 1.10 https://github.com/machty/emblem.js/issues/189
 gem 'ember-rails'
 gem 'emblem-rails'
 
@@ -64,7 +65,7 @@ group :development, :test do
   #gem 'selenium-webdriver'
   gem 'teaspoon'
 
-  gem 'rspec-rails', '~> 3.0.0'
+  gem 'rspec-rails', '~> 3.2.0'
   gem 'factory_girl_rails'
   gem 'faker'
 end
