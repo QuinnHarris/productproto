@@ -62,6 +62,7 @@ group :development, :test do
 
   #gem 'konacha'
   #gem 'selenium-webdriver'
+  gem 'teaspoon'
 
   gem 'rspec-rails', '~> 3.0.0'
   gem 'factory_girl_rails'

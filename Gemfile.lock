@@ -246,6 +246,8 @@ GEM
       colorize
       net-scp (>= 1.1.2)
       net-ssh (>= 2.8.0)
+    teaspoon (0.8.0)
+      railties (>= 3.2.5, < 5)
     temple (0.7.5)
     therubyracer (0.12.1)
       libv8 (~> 3.16.14.0)
@@ -299,6 +301,7 @@ DEPENDENCIES
   simplecov
   slim
   spring
+  teaspoon
   therubyracer
   turbolinks
   typhoeus

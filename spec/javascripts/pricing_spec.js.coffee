@@ -1,5 +1,4 @@
 #= require application
-#= require underscore
 #= require pricing
 
 describe "Pricing", ->
