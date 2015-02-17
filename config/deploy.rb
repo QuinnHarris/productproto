@@ -2,7 +2,7 @@
 #lock '3.2.1'
 
 set :application, 'zendecorator'
-set :repo_url, 'git@git.qutek.net:ornimo'
+set :repo_url, 'git@git.qutek.net:zendec'
 
 # Default branch is :master
 # ask :branch, proc { `git rev-parse --abbrev-ref HEAD`.chomp }.call
@@ -24,6 +24,7 @@ set :repo_url, 'git@git.qutek.net:ornimo'
 
 # Default value for :linked_files is []
 # set :linked_files, %w{config/database.yml}
+set :linked_file, %w(config/secrets.yml)
 
 # Default value for linked_dirs is []
 # set :linked_dirs, %w{bin log tmp/pids tmp/cache tmp/sockets vendor/bundle public/system}
