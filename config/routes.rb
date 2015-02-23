@@ -57,4 +57,8 @@ Rails.application.routes.draw do
   devise_for :users
 
   resources :products
+
+  # HighVoltage Controller
+  get "/pages/*id" => 'pages#show', as: :page, format: false
+  root to: 'pages#home', id: 'home'
 end
