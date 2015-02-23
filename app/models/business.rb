@@ -1,4 +1,4 @@
-class Business < Sequel::Model
+class Business < Sequel::Model(:sales_businesses)
   one_to_many :business_sources
   one_to_many :phones, class: :BusinessPhone
   one_to_many :emails, class: :BusinessEmail

@@ -1,4 +1,4 @@
-class Source < Sequel::Model(:sales__source)
+class Source < Sequel::Model(:sales__sources)
   one_to_many :business_sources
 
   def self.get(name)

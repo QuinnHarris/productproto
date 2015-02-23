@@ -1,4 +1,4 @@
-class SpamEmail < Sequel::Model(:sales__spam_email)
+class SpamEmail < Sequel::Model(:sales__spam_emails)
   many_to_one :spam_batch
   many_to_one :business_email
 

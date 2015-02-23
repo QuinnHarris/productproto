@@ -3,3 +3,8 @@
 
   h1 Ornimo
   h2 Quoting and Invoicing tools for apparel decorators
+
+
+= form_tag({ controller: 'sales', action: 'given_email' }, { remote: true }) do
+  = email_field :email, :value
+  = button_tag 'Send'

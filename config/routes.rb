@@ -58,6 +58,8 @@ Rails.application.routes.draw do
 
   resources :products
 
+  post "given_email" => 'sales#given_email'
+
   # HighVoltage Controller
   get "/pages/*id" => 'pages#show', as: :page, format: false
   root to: 'pages#home', id: 'home'

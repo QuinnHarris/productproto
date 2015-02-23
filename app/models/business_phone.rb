@@ -1,4 +1,4 @@
-class BusinessPhone < Sequel::Model(:sales__business_phone)
+class BusinessPhone < Sequel::Model(:sales__business_phones)
   many_to_one :business
 
   def before_save
