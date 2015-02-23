@@ -49,9 +49,9 @@ class ApplicationController < ActionController::Base
         session[:s_id] = session_record.id
       end
 
-      ar = AccessRequest.create(access_attributes.merge(session_id: session[:s_id]))
+      @request = AccessRequest.create(access_attributes.merge(session_id: session[:s_id]))
 
-      spam_email.add_access_request(ar) if spam_email
+      spam_email.add_access_request(@request) if spam_email
     end
 
     redirect_to request.path, params.except(:r) if spam_email

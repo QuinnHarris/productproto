@@ -1,26 +1,3 @@
-module Sequel
-  class Database
-    # Ideally this would be submitted to the Sequel project
-    def create_sequence_sql(name, options)
-      # Need to implement INCREMENT, MINVALUE, MAXVALUE, START, CACHE, CYCLE
-      sql = "CREATE #{temporary_table_sql if options[:temp]}SEQUENCE #{options[:temp] ? quote_identifier(name) : quote_schema_table(name)}"
-      sql += " INCREMENT BY #{options[:increment]}" if options[:increment]
-      sql += " MINVALUE #{options[:minvalue]}" if options[:minvalue]
-      sql += " MAXVALUE #{options[:maxvalue]}" if options[:maxvalue]
-      sql += " START WITH #{options[:start]}" if options[:start]
-      sql += " CACHE #{options[:cache]}" if options[:cache]
-      sql += " CYCLE" if options[:cycle]
-      sql += " OWNED BY #{options[:ownedby_table]}.#{options[:ownedby_column]}" if options[:ownedby_table]
-      sql
-    end
-
-    def create_sequence(name, options=OPTS)
-      run(create_sequence_sql(name, options))
-    end
-  end
-end
-
-
 Sequel.migration do
   change do
 
@@ -29,90 +6,86 @@ Sequel.migration do
       String      :name
     end
 
+    create_table :locales_inherit do
+      foreign_key :src_id, :locales, null: false
+      foreign_key :dst_id, :locales, null: false
+      primary_key [:src_id, :dst_id]
+    end
+
+
     create_table :variables do
       primary_key :id
-      Integer     :record_id
-      index       :record_id
-      Integer     :type # Predicated on record_id
-      DateTime    :created_at, null: false
-      #TrueClass   :deleted, null: false, default: false
+      Integer     :type, null: false
     end
 
-    create_sequence('variables_record_id_seq',
-                    ownedby_table: :variables,
-                    ownedby_column: :record_id)
-    set_column_default(:variables, :record_id, Sequel.function(:nextval, 'variables_record_id_seq'))
+    create_table :variables_inherit do
+      foreign_key :src_id, :variables, null: false
+      foreign_key :dst_id, :variables, null: false
+      primary_key [:src_id, :dst_id]
+    end
 
     create_table :predicates do
-      foreign_key :id, :variables, null: false
-    end
-
-    create_table :predicate_relations do
       primary_key :id
-      foreign_key :predicate_record_id, :predicates, key: :record_id, null: false
+      foreign_key :variable_id, :variables, null: false
       TrueClass   :deleted, null: false, default: false
       DateTime    :created_at, null: false
     end
 
-    create_table :predicate_and do
-      foreign_key :variable_record_id, :variables, key: :record_id, null: false
-      foreign_key :relation_id, :predicate_relations, null: false
-    end
-
-
-    create_table :properties do
-      foreign_key :id, :variables, null: false
-      foreign_key :locale_id, :locales, null: false
-      String      :name
+    create_table :predicates_and do
+      foreign_key :variable_id, :variables, null: false
+      foreign_key :predicate_id, :predicates, null: false
+      primary_key [:variable_id, :predicate_id]
+      # Used to enumerate total number of rows for one predicate_id
+      index [:predicate_id, :variable_id]
     end
 
     create_table :values do
-      foreign_key :id, :predicates, null: false
-      foreign_key :property_id, :properties, null: false
+      foreign_key :id, :variables, null: false
       foreign_key :locale_id, :locales, null: false
+      DateTime    :created_at, null: false
+      primary_key [:id, :locale_id, :created_at]
       String      :value
     end
 
-    create_table :pricing do
-      foreign_key :id, :predicates, null: false
-      foreign_key :locale_id, :locales, null: false
-
-    end
-
-    create_table :price_breaks do
-      foreign_key :pricing_id, :pricing, null: false
-      Integer     :argument, null: false
-      check { argument >= 0 }
-      Integer     :minimum, null: false
-      index [:pricing_id, :argument, :minimum], unique: true
-      Integer     :value, null: false
-    end
-
-    create_table :pricing_scopes do
-      foreign_key :pricing_id, :pricing, null: false
-      foreign_key :property_id, :properties, null: false
-    end
-
-    create_table :pricing_inputs do
-      foreign_key :pricing_id, :pricing, null: false
-      Integer     :argument
-      check { argument >= 0 }
-      foreign_key :variable_record_id, :variables, key: :record_id, null: false
-    end
-
     create_table :instances do
-      foreign_key :id, :predicates, null: false
+      foreign_key :id, :variables, null: false
+      DateTime    :created_at, null: false
+      primary_key [:id, :created_at]
       Integer     :quantity
       check { quantity >= 0 }
     end
 
-    create_table :collections do
+
+    create_table :prices do
       foreign_key :id, :variables, null: false
+      primary_key [:id]
+      Integer     :composite, null: false
+      DateTime    :created_at, null: false
     end
 
-    create_table :collections_inherit do
-      foreign_key :src_id, :collections, null: false
-      foreign_key :dst_id, :collections, null: false
+    create_table :price_breaks do
+      foreign_key :price_id, :prices, null: false
+      foreign_key :locale_id, :locales, null: false
+      Integer     :argument, null: false
+      check { argument >= 0 }
+      Integer     :minimum, null: false
+      DateTime    :created_at, null: false
+      primary_key [:price_id, :locale_id, :argument, :minimum, :created_at]
+      Integer     :value, null: false
+    end
+
+    create_table :price_scopes do
+      foreign_key :price_id, :prices, null: false
+      foreign_key :property_id, :variables, null: false
+      primary_key [:price_id, :property_id]
+    end
+
+    create_table :price_inputs do
+      foreign_key :price_id, :prices, null: false
+      Integer     :argument
+      check { argument >= 0 }
+      foreign_key :variable_id, :variables, null: false
+      primary_key [:price_id, :argument, :variable_id]
     end
 
   end
