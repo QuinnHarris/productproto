@@ -29,3 +29,18 @@ Sequel::Model.plugin :active_model
 Sequel::Model.plugin :timestamps
 Sequel::Model.plugin :factory_girl_support
 
+module SequelRails
+  class Migrations
+    class << self
+      alias_method :dump_schema_information_orig, :dump_schema_information
+
+      def dump_schema_information(opts = {})
+        if opts.fetch :sql
+          "SET search_path = public, pg_catalog;\n"
+        else
+          ''
+        end + dump_schema_information_orig(opts)
+      end
+    end
+  end
+end
