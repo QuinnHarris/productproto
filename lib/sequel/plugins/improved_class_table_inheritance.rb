@@ -89,7 +89,7 @@ module Sequel
     #   # :model_map :: map of column values to class name symbols
     #   Employee.plugin :class_table_inheritance, :key=>:kind, :table_map=>{:Staff=>:staff},
     #     :model_map=>{1=>:Employee, 2=>:Manager, 3=>:Executive, 4=>:Staff}
-    module ClassTableInheritance
+    module ImprovedClassTableInheritance
       # The class_table_inheritance plugin requires the lazy_attributes plugin
       # to handle lazily-loaded attributes for subclass instances returned
       # by superclass methods.
@@ -143,6 +143,10 @@ module Sequel
         # being class name strings or symbols.  Used if you don't want to
         # store class names in the database.
         attr_reader :cti_model_map
+
+        # !!! NEW
+        # value from cti_model_map for this class
+        attr_reader :cti_key_value
         
         # An array of table symbols that back this model.  The first is
         # cti_base_model table symbol, and the last is the current model
@@ -164,30 +168,44 @@ module Sequel
           ctm = cti_table_map.dup
           cbm = cti_base_model
           cmm = cti_model_map
-          pk = primary_key
+          lk = link_key
           ds = dataset
           table = nil
           columns = nil
           subclass.instance_eval do
             raise(Error, "cannot create anonymous subclass for model class using class_table_inheritance") if !(n = name) || n.empty?
-            table = ctm[n.to_sym] || implicit_table_name
-            columns = db.from(table).columns
-            @cti_key = ck 
-            @cti_tables = ct + [table]
-            @cti_columns = cc.merge(table=>columns)
+            @cti_key = ck
             @cti_table_map = ctm
             @cti_base_model = cbm
             @cti_model_map = cmm
-            # Need to set dataset and columns before calling super so that
-            # the main column accessor module is included in the class before any
-            # plugin accessor modules (such as the lazy attributes accessor module).
-            set_dataset(ds.join(table, pk=>pk).select_append(*(columns - [primary_key]).map{|c| Sequel.qualify(table, Sequel.identifier(c))}))
+
+            if match = cmm.find { |v, c| c.to_s == n }
+              @cti_key_value = match.first
+            end
+
+            table = ctm[n.to_sym] || implicit_table_name
+            columns = db.from(table).columns
+            if table == (ds.opts[:last_joined_table] || ds.first_source_alias)
+              # Allow using the same table for child class
+              @cti_tables = ct
+              @cti_columns = cc
+
+              set_dataset(ds)
+            else
+              @cti_tables = ct + [table]
+              @cti_columns = cc.merge(table=>columns)
+
+              # Need to set dataset and columns before calling super so that
+              # the main column accessor module is included in the class before any
+              # plugin accessor modules (such as the lazy attributes accessor module).
+              set_dataset(ds.join(table, lk=>lk).select_append(*(columns - [link_key]).map{|c| Sequel.qualify(table, Sequel.identifier(c))}))
+            end
             set_columns(self.columns)
           end
           super
           subclass.instance_eval do
             set_dataset_cti_row_proc
-            (columns - [cbm.primary_key]).each{|a| define_lazy_attribute_getter(a, :dataset=>dataset, :table=>table)}
+            (columns - [cbm.link_key]).each{|a| define_lazy_attribute_getter(a, :dataset=>dataset, :table=>table)}
             cti_tables.reverse.each do |t|
               db.schema(t).each{|k,v| db_schema[k] = v}
             end
@@ -196,9 +214,9 @@ module Sequel
         
         # The primary key in the parent/base/root model, which should have a
         # foreign key with the same name referencing it in each model subclass.
-        def primary_key
-          return super if self == cti_base_model
-          cti_base_model.primary_key
+        def link_key
+          return primary_key if self == cti_base_model
+          cti_base_model.link_key
         end
         
         # The table name for the current model class's main table (not used
@@ -239,13 +257,15 @@ module Sequel
       end
 
       module InstanceMethods
+        def link_key; self.class.link_key; end
+
         # Delete the row from all backing tables, starting from the
         # most recent table and going through all superclasses.
         def delete
           raise Sequel::Error, "can't delete frozen object" if frozen?
           m = model
           m.cti_tables.reverse.each do |table|
-            m.db.from(table).filter(m.primary_key=>pk).delete
+            m.db.from(table).filter(m.link_key=>pk).delete
           end
           self
         end
@@ -254,26 +274,33 @@ module Sequel
         
         # Set the cti_key column to the name of the model.
         def _before_validation
-          if new? && model.cti_key && !model.cti_model_map
-            set_column_value("#{model.cti_key}=", model.name.to_s)
+          if new? && model.cti_key
+            if model.cti_key_value
+              set_column_value("#{model.cti_key}=", model.cti_key_value)
+            else
+              set_column_value("#{model.cti_key}=", model.name.to_s)
+            end
           end
           super
         end
-        
+
+        # Does't user :insert_returning_select unless at base.  Should fix.
+
         # Insert rows into all backing tables, using the columns
         # in each table.  
         def _insert
           return super if model == model.cti_base_model
-          iid = @values[primary_key] 
+          iid = @values[link_key]
           m = model
-          m.cti_tables.each do |table|
+          tables = persisted? ? [m.cti_tables.last] : m.cti_tables
+          tables.each do |table|
             h = {}
-            h[m.primary_key] ||= iid if iid
+            h[m.link_key] ||= iid if iid
             m.cti_columns[table].each{|c| h[c] = @values[c] if @values.include?(c)}
             nid = m.db.from(table).insert(h)
             iid ||= nid
           end
-          @values[primary_key] = iid
+          @values[link_key] = iid
         end
         
         # Update rows in all backing tables, using the columns in each table.

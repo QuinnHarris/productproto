@@ -5,3 +5,10 @@
 #
 #   cities = City.create([{ name: 'Chicago' }, { name: 'Copenhagen' }])
 #   Mayor.create(name: 'Emanuel', city: cities.first)
+
+Variable
+locale = Locale.create(name: 'system')
+user = User.create(name: 'system', locale: locale)
+user.created_user_id = user.id
+user.save
+
