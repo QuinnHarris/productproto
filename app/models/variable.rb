@@ -24,7 +24,10 @@ class DBContext
   end
 
   def locale
-
+    return @specified[:locale] if @specified.has_key?(:locale)
+    return parent.locale if parent && parent.locale
+    return user.locale if user
+    nil
   end
 
   def setup_context
@@ -87,6 +90,44 @@ class DBContext
   end
 end
 
+module Sequel
+  module Plugins
+    module Context
+      def self.configure(model, map)
+        model.instance_eval do
+          set_context_map map
+        end
+      end
+
+      module ClassMethods
+        def inherited_instance_variables
+          super.merge(:@context_map=>:dup)
+        end
+        def set_context_map(map)
+          @context_map = map.freeze
+        end
+        attr_reader :context_map
+      end
+
+      module InstanceMethods
+        # Apply Context
+        # Doesn't work right if you use your own model initializers
+        def initialize(values = {})
+          if @context = DBContext.current
+            values = values.dup
+            self.class.context_map.each do |prop, meth|
+              raise "Context value already set" if values.has_key?(prop)
+              values[prop] = @context.send(meth)
+            end
+          end
+          super values
+        end
+      end
+    end
+  end
+end
+
+
 class Variable < Sequel::Model
   type_map = {
       PropertySingleNatural: :properties,
@@ -144,13 +185,14 @@ class Variable < Sequel::Model
 
   one_to_many :predicates
 
+  plugin :context, created_user: :user, locale: :locale
 
-  def predicate_on(list, user)
-    Predicate.create(self, list, user)
+  def predicate_on(list)
+    Predicate.create(self, list)
   end
 
-  def implies(var, user)
-    var.predicate_on(self, user)
+  def implies(var)
+    var.predicate_on(self)
   end
 end
 
@@ -159,10 +201,12 @@ class Predicate < Sequel::Model
   many_to_many :variables, class: Variable, join_table: :predicates_and
   many_to_one :created_user, class: :User
 
+  plugin :context, created_user: :user
+
   #private :new
-  def self.create(dst, srcs, user, deleted = false)
+  def self.create(dst, srcs, deleted = false)
     db.transaction do
-      p = super(variable: dst, created_user: user, deleted: deleted)
+      p = super(variable: dst, deleted: deleted)
       Array(srcs).flatten.each do |o|
         p.add_variable(o)
       end
@@ -245,6 +289,7 @@ end
 
 class ValueString < AbstractValue
   set_primary_key [:id, :created_at]
+  set_context_map created_user: :user
 end
 class PropertySingleString < AbstractSingleProperty
   set_value_class ValueString
