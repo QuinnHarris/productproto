@@ -190,7 +190,7 @@ class Variable < Sequel::Model
   plugin :context, created_user: :user, locale: :locale
 
   plugin :pg_array_associations
-  many_to_pg_array :provides
+  many_to_pg_array :provides, class: :Predicate, key: :dependent_ids
 
   def predicate_on(list)
     list = Array(list).flatten

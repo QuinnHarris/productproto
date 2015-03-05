@@ -120,13 +120,6 @@ Sequel.migration do
       index :dependent_ids, type: :gin
     end
 
-    create_table :predicates_and do
-      foreign_key :variable_id, :variables, null: false
-      foreign_key :predicate_id, :predicates, null: false
-      primary_key [:variable_id, :predicate_id]
-      index [:predicate_id, :variable_id], unique: true
-    end
-
     create_table :properties do
       foreign_key :id, :variables, null: false
       foreign_key :locale_id, :locales, null: false

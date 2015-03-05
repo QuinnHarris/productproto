@@ -31,5 +31,7 @@ RSpec.describe Variable, type: :model do
       product.implies(color_val)
     end
 
+    # Enumerate table
+    # id,
   end
 end
