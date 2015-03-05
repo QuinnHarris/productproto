@@ -10,8 +10,15 @@ RSpec.describe Variable, type: :model do
     DBContext.apply_close!
   end
   it "can create a product" do
-    product = Product.create #(locale: @locale, created_user: @user)
+    brand_class = ProductClass.create
+    brand_prop = PropertySingleString.create(name: 'Brand')
+    brand_val = brand_prop.add_property_value(value: 'Gilden')
+    brand_class.implies(brand_val)
+
+    product = Product.create
     expect(product).to be_an_instance_of(Product)
+
+    AssertionRelation.create(predecessor: brand_class, successor: product)
 
     sku_prop = PropertySingleString.create(name: 'SKU')
     sku_val = sku_prop.add_property_value(value: '123')

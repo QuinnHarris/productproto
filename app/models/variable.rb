@@ -113,7 +113,7 @@ module Sequel
         # Apply Context
         # Doesn't work right if you use your own model initializers
         def initialize(values = {})
-          if @context = DBContext.current
+          if @context = DBContext.current!
             values = values.dup
             self.class.context_map.each do |prop, meth|
               raise "Context value already set" if values.has_key?(prop)
@@ -149,8 +149,10 @@ class Variable < Sequel::Model
 
       Assersion: [:assertions, 16 * 2**8],
       User: [:users, 16 * 2**8],
+      ProductProperties: :assertions,
       Collection: nil,
       InstanceCollection: nil,
+      ProductClass: nil,
       Product: nil,
 
       Instance: [:value_integers, 17 * 2**8 + 1],
@@ -187,8 +189,12 @@ class Variable < Sequel::Model
 
   plugin :context, created_user: :user, locale: :locale
 
+  plugin :pg_array_associations
+  many_to_pg_array :provides
+
   def predicate_on(list)
-    Predicate.create(self, list)
+    list = Array(list).flatten
+    Predicate.create(variable: self, dependents: list)
   end
 
   def implies(var)
@@ -197,24 +203,42 @@ class Variable < Sequel::Model
 end
 
 class Predicate < Sequel::Model
-  many_to_one :variable
-  many_to_many :variables, class: Variable, join_table: :predicates_and
-  many_to_one :created_user, class: :User
-
   plugin :context, created_user: :user
+  plugin :pg_array_associations
 
-  #private :new
-  def self.create(dst, srcs, deleted = false)
-    db.transaction do
-      p = super(variable: dst, deleted: deleted)
-      Array(srcs).flatten.each do |o|
-        p.add_variable(o)
-      end
+  many_to_one :variable
+  pg_array_to_many :dependents, class: Variable
+  def dependents=(list)
+    ids = list.map do |obj|
+      raise "Unexpected type" unless obj.is_a?(Variable)
+      obj.id
     end
+    set_column_value("dependent_ids=", Sequel.pg_array(ids))
   end
+
+  many_to_one :created_user, class: :User
+end
+
+class ProductProperties < Variable
+
+end
+
+class AssertionRelation < Sequel::Model
+  many_to_one :successor, class: :Assertion
+  many_to_one :predecessor, class: :Assertion
+
+  many_to_one :created_user, class: :User
+  plugin :context, created_user: :user
 end
 
 class Assertion < Variable
+  set_context_map created_user: :user
+
+  one_to_many :predecessors, class: AssertionRelation, reciprocal: :successor
+  one_to_many :successors, class: AssertionRelation, reciprocal: :predecessor
+end
+
+class ProductClass < Assertion
 
 end
 

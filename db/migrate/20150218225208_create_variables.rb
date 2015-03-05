@@ -34,15 +34,15 @@ Sequel.migration do
       foreign_key :locale_id, :locales, null: false
     end
     alter_table :assertions do
-      add_foreign_key :created_user_id, :users, null: true # Change later
+      add_foreign_key :created_user_id, :users, null: false # Change later
     end
 
-    create_table :assertions_inherit do
-      foreign_key :src_id, :assertions, null: false
-      foreign_key :dst_id, :assertions, null: false
+    create_table :assertion_relations do
+      foreign_key :predecessor_id, :assertions, null: false
+      foreign_key :successor_id, :assertions, null: false
       foreign_key :created_user_id, :users, null: false
       DateTime    :created_at, null: false
-      primary_key [:src_id, :dst_id, :created_at]
+      primary_key [:predecessor_id, :successor_id, :created_at]
       TrueClass   :deleted, null: false, default: false
 
       DateTime    :version_lock
@@ -113,9 +113,11 @@ Sequel.migration do
     create_table :predicates do
       primary_key :id
       foreign_key :variable_id, :variables, null: false
+      column      :dependent_ids, 'integer[]', null: false
       TrueClass   :deleted, null: false, default: false
       foreign_key :created_user_id, :users, null: false
       DateTime    :created_at, null: false
+      index :dependent_ids, type: :gin
     end
 
     create_table :predicates_and do
