@@ -1,5 +1,7 @@
 require 'rails_helper'
 
+Property
+
 RSpec.describe Variable, type: :model do
   before do
     #@locale = Locale.find(id: 1)
@@ -32,6 +34,7 @@ RSpec.describe Variable, type: :model do
     end
 
     # Enumerate table
-    # id,
+    # id,type,access,dependent_ids,deleted
+    # product.decendents set of eager Predicate
   end
 end

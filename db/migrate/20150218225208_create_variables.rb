@@ -109,15 +109,9 @@ Sequel.migration do
       String      :username, null: false
     end
 
-
-    create_table :predicates do
+    create_table :namespaces do
       primary_key :id
-      foreign_key :variable_id, :variables, null: false
-      column      :dependent_ids, 'integer[]', null: false
-      TrueClass   :deleted, null: false, default: false
-      foreign_key :created_user_id, :users, null: false
-      DateTime    :created_at, null: false
-      index :dependent_ids, type: :gin
+      String      :name, null: false
     end
 
     create_table :properties do
@@ -130,11 +124,26 @@ Sequel.migration do
       #column      :tsv, 'tsvector', null: false
     end
 
+    create_table :namespaces_properties do
+      foreign_key :namespace_id, :namespaces, null: false
+      foreign_key :property_id, :variables, null: false
+    end
+
     create_table :values do
       foreign_key :id, :variables, null: false
       primary_key [:id]
       foreign_key :property_id, :variables, null: false
       unique [:id, :property_id]
+    end
+
+    create_table :predicates do
+      primary_key :id
+      foreign_key :value_id, :values, null: false
+      column      :dependent_ids, 'integer[]', null: false
+      TrueClass   :deleted, null: false, default: false
+      foreign_key :created_user_id, :users, null: false
+      DateTime    :created_at, null: false
+      index :dependent_ids, type: :gin
     end
 
     create_table :value_naturals do
