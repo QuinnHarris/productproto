@@ -1,6 +1,15 @@
 Sequel.migration do
   change do
 
+    run %(
+      CREATE AGGREGATE array_aggcat (anyarray)
+      (   sfunc = array_cat,
+          stype = anyarray,
+          initcond = '{}'
+      );
+    )
+
+
     create_table :locales do
       primary_key :id
       Integer     :type, null: false
