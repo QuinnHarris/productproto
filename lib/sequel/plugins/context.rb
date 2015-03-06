@@ -103,7 +103,7 @@ module Sequel
         def inherited_instance_variables
           super.merge(:@context_map=>:dup)
         end
-        def set_context_map(map)
+        def set_context_map(map = {})
           @context_map = map.freeze
         end
         attr_reader :context_map

@@ -14,24 +14,66 @@ RSpec.describe Variable, type: :model do
   it "can create a product" do
     brand_class = ProductClass.create
     brand_prop = PropertySingleString.create(name: 'Brand')
-    brand_val = brand_prop.add_property_value(value: 'Gilden')
+    brand_val = brand_prop.add_property_value(value: 'Gildan')
     brand_class.implies(brand_val)
 
-    product = Product.create
-    expect(product).to be_an_instance_of(Product)
+    product_class = ProductClass.create
+    AssertionRelation.create(predecessor: brand_class, successor: product_class)
 
-    AssertionRelation.create(predecessor: brand_class, successor: product)
-
-    sku_prop = PropertySingleString.create(name: 'SKU')
-    sku_val = sku_prop.add_property_value(value: '123')
-
-    sku_val.predicate_on(product)
-
-    color_prop = PropertySetNatural.create(name: 'Color')
+    color_prop = PropertySingleNatural.create(name: 'Color')
     %w(Red Green Blue).each do |color|
       color_val = color_prop.add_property_value(value: color)
-      product.implies(color_val)
+      product_class.implies(color_val)
     end
+
+    sku_prop = PropertySingleString.create(name: 'SKU')
+    sku_val = sku_prop.add_property_value(value: '2000')
+    sku_val.predicate_on(product_class)
+
+    size_class_prop = PropertySingleNatural.create(name: 'Size Class')
+    gender_prop = PropertySetNatural.create(name: 'Gender')
+    gender_male, gender_female = %w(Male Female).map do |gender|
+      gender_prop.add_property_value(value: gender)
+    end
+    size_prop = PropertySingleString.create(name: 'Size')
+    size_list = %w(S M L XL 2XL 3XL 4XL 5XL).map do |size|
+      size_prop.add_property_value(value: size)
+    end
+    size_wc_prop = PropertySingleNull.create(name: 'Size & Class')
+
+
+    # Adult
+    product_adult = Product.create
+    AssertionRelation.create(predecessor: product_class, successor: product_adult)
+
+    size_class_val = size_class_prop.add_property_value(value: 'Adult')
+    size_class_val.implies gender_male, gender_female
+    product_adult.implies size_class_val
+
+    size_list.each do |size_val|
+      size_wc_val = size_wc_prop.add_property_value({})
+      size_wc_val.predicate_on size_class_val, size_val
+      product_adult.implies size_wc_val
+    end
+
+
+    # Ladies
+    product_ladies = Product.create
+    product_ladies.implies sku_prop.add_property_value(value: 'L')
+
+    AssertionRelation.create(predecessor: product_class, successor: product_ladies)
+    size_class_val = size_class_prop.add_property_value(value: 'Ladies')
+    size_class_val.implies gender_female
+    product_ladies.implies size_class_val
+
+    size_list[0..-4].each do |size_val|
+      size_wc_val = size_wc_prop.add_property_value({})
+      size_wc_val.predicate_on size_class_val, size_val
+      product_adult.implies size_wc_val
+    end
+
+
+
 
     # Enumerate table
     # id,type,access,dependent_ids,deleted

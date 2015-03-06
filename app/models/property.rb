@@ -10,12 +10,16 @@ class Property < PropertyValue
     one_to_many :property_values, class: key, key: :property_id, primary_key: :id
   end
   cattr_reader :value_class
-
 end
 class PropertySingle < Property
 end
 class PropertySet < Property
 end
+
+class PropertySingleNull < Property
+  set_value_class ValueNull
+end
+
 
 # Natural
 class PropertySingleNatural < PropertySingle

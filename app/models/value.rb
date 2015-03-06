@@ -1,10 +1,13 @@
 class Value < PropertyValue
   one_to_many :predicates
 
-  def predicate_on(list)
-    list = Array(list).flatten
-    Predicate.create(value: self, dependents: list)
+  def predicate_on(*list)
+    Predicate.create(value: self, dependents: list.flatten)
   end
+end
+
+class ValueNull < Value
+  set_context_map
 end
 
 class ValueNatural < Value

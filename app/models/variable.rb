@@ -4,10 +4,12 @@ class Variable < Sequel::Model
       PropertySingleString: nil,
       PropertySingleFloat: nil,
       PropertySingleInteger: nil,
+      PropertySingleNull: nil,
       PropertySetNatural: [nil, 1 * 2**8],
       PropertySetString: nil,
 
-      ValueNatural: [:value_naturals, 8 * 2**8],
+      ValueNull: [:values, 8 * 2**8],
+      ValueNatural: :value_naturals,
       ValueString: :value_strings,
       ValueFloat: :value_floats,
       ValueInteger: :value_integers,
@@ -59,8 +61,10 @@ class Variable < Sequel::Model
   plugin :pg_array_associations
   many_to_pg_array :provides, class: :Predicate, key: :dependent_ids
 
-  def implies(var)
-    var.predicate_on(self)
+  def implies(*list)
+    list.flatten.each do |var|
+      var.predicate_on(self)
+    end
   end
 end
 
