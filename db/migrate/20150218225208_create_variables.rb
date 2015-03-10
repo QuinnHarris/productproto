@@ -1,6 +1,7 @@
 Sequel.migration do
   change do
 
+    # array_agg might work in 9.5 https://wiki.postgresql.org/wiki/Todo
     run %(
       CREATE AGGREGATE array_aggcat (anyarray)
       (   sfunc = array_cat,
@@ -165,6 +166,7 @@ Sequel.migration do
       String      :name, null: false
     end
 
+    # Does a property need to be a predicate variable?  If not can drop values table.
     create_table :properties do
       foreign_key :id, :variables, null: false
       foreign_key :locale_id, :locales, null: false

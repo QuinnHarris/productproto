@@ -4,7 +4,7 @@ source 'https://rubygems.org'
 gem 'rails', '4.2.0'
 
 # Use sequel instead of Active Record
-gem 'pg'
+gem 'sequel_pg'
 gem 'sequel-rails'
 
 # Resources

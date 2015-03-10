@@ -225,6 +225,9 @@ GEM
       activemodel
       railties (>= 3.2.0)
       sequel (>= 3.28, < 5.0)
+    sequel_pg (1.6.11)
+      pg (>= 0.8.0)
+      sequel (>= 3.39.0)
     simplecov (0.9.1)
       docile (~> 1.1.0)
       multi_json (~> 1.0)
@@ -294,13 +297,13 @@ DEPENDENCIES
   jbuilder (~> 2.0)
   jquery-rails
   nokogiri
-  pg
   rails (= 4.2.0)
   rspec-rails (~> 3.2.0)
   sass-rails (~> 5.0)
   sdoc (~> 0.4.0)
   sequel-devise
   sequel-rails
+  sequel_pg
   simplecov
   slim
   spring
