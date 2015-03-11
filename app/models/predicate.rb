@@ -60,4 +60,9 @@ class Predicate < Sequel::Model
 
 
   end
+
+  # !!! IMPLEMENT
+  def remove
+
+  end
 end

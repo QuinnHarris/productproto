@@ -9,7 +9,7 @@
 Variable
 User.db.alter_table(:assertions) { set_column_allow_null :created_user_id }
 locale = Locale.create(name: 'system')
-user = User.create(name: 'system', locale: locale)
+user = User.create(value: 'system', locale: locale)
 user.created_user_id = user.id
 user.save
 User.db.alter_table(:assertions) { set_column_not_null :created_user_id }

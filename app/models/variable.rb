@@ -4,6 +4,7 @@ class Variable < Sequel::Model
       PropertySingleString: nil,
       PropertySingleFloat: nil,
       PropertySingleInteger: nil,
+      PropertySingleBoolean: nil,
       PropertySingleNull: nil,
       PropertySetNatural: [nil, 1 * 2**8],
       PropertySetString: nil,
@@ -13,6 +14,7 @@ class Variable < Sequel::Model
       ValueString: :value_strings,
       ValueFloat: :value_floats,
       ValueInteger: :value_integers,
+      ValueBoolean: :value_booleans,
 
       PriceSingle: [:value_integers, 9 * 2**8],
       PriceReplaceDiscrete: :functions,
@@ -23,6 +25,7 @@ class Variable < Sequel::Model
       Assertion: :assertions,
       Collection: nil,
       InstanceCollection: nil,
+      Supplier: nil,
       ProductClass: nil,
       Product: nil,
 

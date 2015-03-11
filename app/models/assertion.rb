@@ -30,8 +30,11 @@ end
 class Assertion < Variable
   set_context_map created_user: :user
 
-  one_to_many :predecessors, class: AssertionRelation, reciprocal: :successor
-  one_to_many :successors, class: AssertionRelation, reciprocal: :predecessor
+  one_to_many :predecessor_relations, class: AssertionRelation, reciprocal: :successor
+  one_to_many :successor_relations, class: AssertionRelation, reciprocal: :predecessor
+
+  many_to_many :predecessors, class: Assertion, join_table: :assertion_relations, reciprocal: :successor, left_key: :successor_id
+  many_to_many :successors, class: Assertion, join_table: :assertion_relations, reciprocal: :predecessor, left_key: :predecessor_id
 end
 
 class ProductClass < Assertion
@@ -39,6 +42,10 @@ class ProductClass < Assertion
 end
 
 class Collection < Assertion
+
+end
+
+class Supplier < Assertion
 
 end
 

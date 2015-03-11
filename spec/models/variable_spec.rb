@@ -13,33 +13,33 @@ RSpec.describe Variable, type: :model do
   end
   it "can create a product" do
     brand_class = ProductClass.create
-    brand_prop = PropertySingleString.create(name: 'Brand')
+    brand_prop = PropertySingleString.create(value: 'Brand')
     brand_val = brand_prop.add_property_value(value: 'Gildan')
     brand_class.implies(brand_val)
 
     product_class = ProductClass.create
     AssertionRelation.create(predecessor: brand_class, successor: product_class)
 
-    color_prop = PropertySingleNatural.create(name: 'Color')
+    color_prop = PropertySingleNatural.create(value: 'Color')
     %w(Red Green Blue).each do |color|
       color_val = color_prop.add_property_value(value: color)
       product_class.implies(color_val)
     end
 
-    sku_prop = PropertySingleString.create(name: 'SKU')
+    sku_prop = PropertySingleString.create(value: 'SKU')
     sku_val = sku_prop.add_property_value(value: '2000')
     sku_val.predicate_on(product_class)
 
-    size_class_prop = PropertySingleNatural.create(name: 'Size Class')
-    gender_prop = PropertySetNatural.create(name: 'Gender')
+    size_class_prop = PropertySingleNatural.create(value: 'Size Class')
+    gender_prop = PropertySetNatural.create(value: 'Gender')
     gender_male, gender_female = %w(Male Female).map do |gender|
       gender_prop.add_property_value(value: gender)
     end
-    size_prop = PropertySingleString.create(name: 'Size')
+    size_prop = PropertySingleString.create(value: 'Size')
     size_list = %w(S M L XL 2XL 3XL 4XL 5XL).map do |size|
       size_prop.add_property_value(value: size)
     end
-    size_wc_prop = PropertySingleNull.create(name: 'Size & Class')
+    size_wc_prop = PropertySingleNull.create(value: 'Size & Class')
 
 
     # Adult

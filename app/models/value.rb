@@ -28,6 +28,11 @@ class ValueInteger < Value
   set_primary_key [:id, :created_at]
 end
 
+class ValueBoolean < Value
+  set_primary_key [:id, :created_at]
+  set_context_map created_user: :user
+end
+
 
 # Pricing is a specific property value
 class Pricing < Value

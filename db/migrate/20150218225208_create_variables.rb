@@ -1,16 +1,6 @@
 Sequel.migration do
   change do
 
-    # array_agg might work in 9.5 https://wiki.postgresql.org/wiki/Todo
-    run %(
-      CREATE AGGREGATE array_aggcat (anyarray)
-      (   sfunc = array_cat,
-          stype = anyarray,
-          initcond = '{}'
-      );
-    )
-
-
     create_table :locales do
       primary_key :id
       Integer     :type, null: false
@@ -33,6 +23,7 @@ Sequel.migration do
       foreign_key :id, :variables, null: false
       primary_key [:id]
 
+      String      :value
       DateTime    :created_at, null: false
     end
 
@@ -40,7 +31,6 @@ Sequel.migration do
       foreign_key :id, :assertions, null: false
       primary_key [:id]
 
-      String      :name
       foreign_key :locale_id, :locales, null: false
     end
     alter_table :assertions do
@@ -59,47 +49,56 @@ Sequel.migration do
       Integer     :access, default: 2147483647
     end
 
-    # Use stored procedure and trigger to test for cycles
-    # This will not detect cycles when two transactions are opened
-    # simultaneously that together insert rows causing a cycle
-    run %(
-      CREATE FUNCTION cycle_test() RETURNS TRIGGER AS $$
-      DECLARE
-        cycle_path integer ARRAY;
-      BEGIN
-        IF (TG_OP = 'UPDATE' AND
-            NEW.successor_id = OLD.successor_id AND
-            NEW.predecessor_id = OLD.predecessor_id) THEN
-          RETURN NULL;
-        END IF;
-
-        WITH RECURSIVE assertion_decend AS (
-            SELECT NEW.successor_id AS id,
-                   ARRAY[NEW.predecessor_id, NEW.successor_id] AS path,
-                   false AS cycle
-          UNION
-            SELECT assertion_relations.successor_id,
-                   assertion_decend.path || assertion_relations.successor_id,
-             assertion_relations.successor_id = ANY(assertion_decend.path)
-              FROM assertion_relations
-          INNER JOIN assertion_decend
-            ON assertion_relations.predecessor_id = assertion_decend.id
-              WHERE NOT assertion_decend.cycle
-        ) SELECT path INTO cycle_path
-            FROM assertion_decend WHERE cycle LIMIT 1;
-
-        IF FOUND THEN
-          RAISE EXCEPTION 'cycle found %', cycle_path;
-        END IF;
-
-        RETURN NULL;
-      END
-      $$ LANGUAGE plpgsql;
-
-      CREATE CONSTRAINT TRIGGER cycle_test
-        AFTER INSERT OR UPDATE ON assertion_relations
-        FOR EACH ROW EXECUTE PROCEDURE cycle_test();
-    )
+    # # array_agg might work in 9.5 https://wiki.postgresql.org/wiki/Todo
+    # run %(
+    #   CREATE AGGREGATE array_aggcat (anyarray)
+    #   (   sfunc = array_cat,
+    #       stype = anyarray,
+    #       initcond = '{}'
+    #   );
+    # )
+    #
+    # # Use stored procedure and trigger to test for cycles
+    # # This will not detect cycles when two transactions are opened
+    # # simultaneously that together insert rows causing a cycle
+    # run %(
+    #   CREATE FUNCTION cycle_test() RETURNS TRIGGER AS $$
+    #   DECLARE
+    #     cycle_path integer ARRAY;
+    #   BEGIN
+    #     IF (TG_OP = 'UPDATE' AND
+    #         NEW.successor_id = OLD.successor_id AND
+    #         NEW.predecessor_id = OLD.predecessor_id) THEN
+    #       RETURN NULL;
+    #     END IF;
+    #
+    #     WITH RECURSIVE assertion_decend AS (
+    #         SELECT NEW.successor_id AS id,
+    #                ARRAY[NEW.predecessor_id, NEW.successor_id] AS path,
+    #                false AS cycle
+    #       UNION
+    #         SELECT assertion_relations.successor_id,
+    #                assertion_decend.path || assertion_relations.successor_id,
+    #          assertion_relations.successor_id = ANY(assertion_decend.path)
+    #           FROM assertion_relations
+    #       INNER JOIN assertion_decend
+    #         ON assertion_relations.predecessor_id = assertion_decend.id
+    #           WHERE NOT assertion_decend.cycle
+    #     ) SELECT path INTO cycle_path
+    #         FROM assertion_decend WHERE cycle LIMIT 1;
+    #
+    #     IF FOUND THEN
+    #       RAISE EXCEPTION 'cycle found %', cycle_path;
+    #     END IF;
+    #
+    #     RETURN NULL;
+    #   END
+    #   $$ LANGUAGE plpgsql;
+    #
+    #   CREATE CONSTRAINT TRIGGER cycle_test
+    #     AFTER INSERT OR UPDATE ON assertion_relations
+    #     FOR EACH ROW EXECUTE PROCEDURE cycle_test();
+    # )
 
     create_table :authenticates do
       primary_key :id
@@ -173,7 +172,7 @@ Sequel.migration do
       foreign_key :created_user_id, :users, null: false
       DateTime    :created_at, null: false
       primary_key [:id, :locale_id, :created_at]
-      String      :name, null: false
+      String      :value, null: false
       #column      :tsv, 'tsvector', null: false
     end
 
@@ -236,6 +235,14 @@ Sequel.migration do
       DateTime    :created_at, null: false
       primary_key [:id, :created_at]
       Integer     :value, null: false
+    end
+
+    create_table :value_booleans do
+      foreign_key :id, :values, null: false
+      foreign_key :created_user_id, :users, null: false
+      DateTime    :created_at, null: false
+      primary_key [:id, :created_at]
+      Boolean     :value, null: false
     end
 
 
