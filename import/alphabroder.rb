@@ -90,4 +90,114 @@ class AlphaBroderImport < GenericImport
       pd.set_implies(@style_values[row['Style Code']]) if @style_values[row['Style Code']]
     end
   end
+
+  def find_dependents
+    puts "Loading"
+    list = []
+    headers = nil
+    CSV.open(File.join(@src_directory, 'items_R064.csv'), encoding: "ISO-8859-1") do |csv|
+      #csv.each { |r| list << r }
+      headers, *list = csv.to_a
+    end
+
+    #headers -= %w(Company Domain Coming\ Soon)
+    #use_header = %w(Color\ Name Hex\ Code Mill\ Name)
+    #use_header = %w(Retail\ Price Style\ Number Color\ Name Size\ Name)
+    exclude_common = %w(Company Domain Coming\ Soon Description)
+    exclude_headers = exclude_common + %w(Item\ Number)
+    exclude_dependent = exclude_common
+
+    sequence_base = (0...headers.length).find_all { |i| !exclude_dependent.include?(headers[i]) }
+
+    dependents_exclude = []
+
+    puts "Processing"
+    headers.each_with_index do |name, index|
+      #next unless use_header.include?(name)
+      next if exclude_headers.include?(name)
+      puts name
+      sequence = sequence_base - [index]
+      #sequence = use_header.map { |s| headers.index(s) }.sort - [index]
+      dependents = sequence.map { |i| [i] }
+      (2..3).each do |size|
+        dependents += sequence.permutation(size).map { |a| a.sort }.uniq
+      end
+      #value_map = {}
+      dependents -= dependents_exclude
+      dependents = dependents.map { |l| [{}] + l }
+
+
+      current_values = Set.new
+
+      matches = 0
+      list.each_with_index do |row, j|
+        current = row[index]
+
+        current_values << current
+        break if j > 100 and current_values.length == 1
+
+        #length = dependents.length
+        dependents.delete_if do |value_map, *a|
+          reference = a.map { |i| row[i] }
+          if dep = value_map[reference]
+            if current != dep
+              #puts " - #{a.map { |i| headers[i]}}: #{current} != #{dep} for #{reference} @ #{j}"
+
+              next true
+            else
+              matches += 1
+            end
+          else
+            value_map[reference] = current
+            if j > 500 and value_map.length * 3 > j * 2
+              #puts "X"
+              dependents_exclude << a
+              next true
+            end
+          end
+          false
+        end
+
+        #if length != dependents.length
+        #  print '*' * (length - dependents.length)
+        #end
+
+
+        # if deps = value_map[value]
+        #   matches += 1
+        #   dependents.delete_if do |a|
+        #     if (l = deps[a]) != (r = a.map { |i| row[i] })
+        #       puts "  D: #{deps} : #{a}"
+        #       puts " - #{a.map {|i| headers[i] }}: #{l} != #{r} for #{value} @ #{j}"
+        #       true
+        #     end
+        #   end
+        # else
+        #   r = value_map[value] = dependents.each_with_object({}) { |a, h| h[a] = a.map { |i| row[i] } }
+        #   puts " + #{value} => #{r}"
+        # end
+
+        break if j > 1000 and matches == 0
+
+        break if dependents.empty?
+      end
+
+      if dependents.empty?
+        puts "  NO DEPENDENTS"
+      elsif current_values.length == 1
+        puts "  SAME VALUES"
+      elsif matches == 0
+        puts "  NO MATCHES"
+      else
+        #(2..3).each do |size|
+        #  dependents -= dependents.permutation(size).map { |e| e.flatten.uniq.sort }
+        #end
+        dependents = dependents.map { |value_map, *a| a }
+        #puts "ID: #{dependents}"
+        puts "  #{dependents.map { |a| a.map { |i| headers[i] }}}"
+      end
+
+    end
+
+  end
 end
