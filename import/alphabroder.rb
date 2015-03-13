@@ -100,9 +100,7 @@ class AlphaBroderImport < GenericImport
       headers, *list = csv.to_a
     end
 
-    #headers -= %w(Company Domain Coming\ Soon)
-    #use_header = %w(Color\ Name Hex\ Code Mill\ Name)
-    #use_header = %w(Retail\ Price Style\ Number Color\ Name Size\ Name)
+
     exclude_common = %w(Company Domain Coming\ Soon Description)
     exclude_headers = exclude_common + %w(Item\ Number)
     exclude_dependent = exclude_common
@@ -113,88 +111,75 @@ class AlphaBroderImport < GenericImport
 
     puts "Processing"
     headers.each_with_index do |name, index|
-      #next unless use_header.include?(name)
       next if exclude_headers.include?(name)
       puts name
       sequence = sequence_base - [index]
-      #sequence = use_header.map { |s| headers.index(s) }.sort - [index]
-      dependents = sequence.map { |i| [i] }
-      (2..3).each do |size|
-        dependents += sequence.permutation(size).map { |a| a.sort }.uniq
-      end
-      #value_map = {}
-      dependents -= dependents_exclude
-      dependents = dependents.map { |l| [{}] + l }
+
+      established_dependents = []
+
+      (1..2).each do |size|
+        full_dependents = sequence.permutation(size).map { |a| a.sort }.uniq
+        full_dependents -= dependents_exclude
+
+        full_dependents.delete_if { |a| established_dependents.find { |e| (e-a).empty? } }
+
+        #puts "Pass: #{dependents}"
+
+        full_dependents.in_groups_of(100) do |dependents|
+          print '*'
+
+          dependents = dependents.compact.map { |l| [{}] + l }
 
 
-      current_values = Set.new
+          matches = 0
+          list.each_with_index do |row, j|
+            current = row[index]
 
-      matches = 0
-      list.each_with_index do |row, j|
-        current = row[index]
+            #current_values << current
+            #break if j > 100 and current_values.length == 1
 
-        current_values << current
-        break if j > 100 and current_values.length == 1
+            #length = dependents.length
+            dependents.delete_if do |value_map, *a|
+              reference = a.map { |i| row[i] }
+              if dep = value_map[reference]
+                if current != dep
+                  #puts " - #{a.map { |i| headers[i]}}: #{current} != #{dep} for #{reference} @ #{j}"
 
-        #length = dependents.length
-        dependents.delete_if do |value_map, *a|
-          reference = a.map { |i| row[i] }
-          if dep = value_map[reference]
-            if current != dep
-              #puts " - #{a.map { |i| headers[i]}}: #{current} != #{dep} for #{reference} @ #{j}"
-
-              next true
-            else
-              matches += 1
+                  next true
+                else
+                  matches += 1
+                end
+              else
+                value_map[reference] = current
+                if j > 500 and value_map.length * 3 > j * 2
+                  #puts "X"
+                  dependents_exclude << a
+                  next true
+                end
+              end
+              false
             end
-          else
-            value_map[reference] = current
-            if j > 500 and value_map.length * 3 > j * 2
-              #puts "X"
-              dependents_exclude << a
-              next true
+
+
+            if j > 1000 and matches == 0
+              puts "No Matches"
+              dependents = []
+              break
             end
+
+            break if dependents.empty?
           end
-          false
+
+          dependents = dependents.map { |value_map, *a| a }
+          #puts "Found: #{dependents}"
+          established_dependents += dependents
         end
-
-        #if length != dependents.length
-        #  print '*' * (length - dependents.length)
-        #end
-
-
-        # if deps = value_map[value]
-        #   matches += 1
-        #   dependents.delete_if do |a|
-        #     if (l = deps[a]) != (r = a.map { |i| row[i] })
-        #       puts "  D: #{deps} : #{a}"
-        #       puts " - #{a.map {|i| headers[i] }}: #{l} != #{r} for #{value} @ #{j}"
-        #       true
-        #     end
-        #   end
-        # else
-        #   r = value_map[value] = dependents.each_with_object({}) { |a, h| h[a] = a.map { |i| row[i] } }
-        #   puts " + #{value} => #{r}"
-        # end
-
-        break if j > 1000 and matches == 0
-
-        break if dependents.empty?
       end
 
-      if dependents.empty?
+      if established_dependents.empty?
         puts "  NO DEPENDENTS"
-      elsif current_values.length == 1
-        puts "  SAME VALUES"
-      elsif matches == 0
-        puts "  NO MATCHES"
       else
-        #(2..3).each do |size|
-        #  dependents -= dependents.permutation(size).map { |e| e.flatten.uniq.sort }
-        #end
-        dependents = dependents.map { |value_map, *a| a }
-        #puts "ID: #{dependents}"
-        puts "  #{dependents.map { |a| a.map { |i| headers[i] }}}"
+        puts "  #{established_dependents.map { |a| a.map { |i| headers[i] }}}"
       end
 
     end
