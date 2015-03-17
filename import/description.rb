@@ -18,7 +18,6 @@ class ModelDescription
   end
 
   def marshal_dump
-    puts "MODEL DUMP #{@id}"
     [@id]
   end
 
@@ -49,7 +48,6 @@ class VariableDescription < ModelDescription
   end
 
   def value
-    puts "Values: #{self.class} #{@id} #{@value}"
     @value ||= model.value
   end
 
@@ -58,7 +56,6 @@ class VariableDescription < ModelDescription
   end
 
   def marshal_dump
-    puts "Variable DUMP: #{@id} #{@value}"
     [@id, value]
   end
 
@@ -84,22 +81,11 @@ class PropertyDesc < VariableDescription
   attr_reader :type
 
   def marshal_dump
-    values = @value_map.values
-    ids =values.map { |v| v.id }
-    puts "PROPERTY DUMP: #{@type}:#{@value} #{ids}"
-    raise "ADSFsf" if ids.include?(nil)
-    res = super + [@type, values]
-    res
+    super + [@type, @value_map]
   end
 
   def marshal_load(array)
-    @type, values, = super array
-    puts "PROP MAR ID: #{@id} #{@type} #{@value} #{values.length}"
-    @value_map = {}
-    values.each { |d|
-      v = d.instance_variable_get('@value')
-      @value_map[v] = d
-    }
+    @type, @value_map, = super array
   end
 
   def get_value(value)
@@ -179,14 +165,11 @@ class ValueDesc < VariableDescription
   end
 
   def marshal_dump
-    puts "VALUE DUMP: #{@value}"
-    super + [@property, @predicates.values]
+    super + [@property, @predicates]
   end
 
   def marshal_load(array)
-    @property, predicates, = super array
-    @predicates = {}
-    predicates.each { |p| @predicates[p.dependents] = p }
+    @property, @predicates, = super array
   end
 
   def create
@@ -221,13 +204,11 @@ class PredicateDesc < ModelDescription
   def type; Predicate; end
 
   def marshal_dump
-    puts "PREDICATE DUMP"
-    super + [@dependents.to_a]
+    super + [@dependents]
   end
 
   def marshal_load(array)
-    dependents, = super array
-    @dependents = Set.new(dependents)
+    @dependents, = super array
   end
 
   def create(vd)
@@ -291,8 +272,10 @@ class DataDescription
 
   def cache_write
     # Use temporary file incase process is terminated during write
+    print "Writing Cache to #{cache_file}:"
     File.open(cache_file+'.temp','w') { |f| Marshal.dump(marshal_dump, f) }
     File.rename(cache_file+'.temp', cache_file)
+    puts "DONE"
   end
 
   def find_property(name)
@@ -314,14 +297,15 @@ class DataDescription
     klass_s = "Property#{set ? 'Set' : 'Single'}#{type.to_s.capitalize}"
     klass = Property.const_get(klass_s)
     desc = @property_name_map[name]
-    existing = false
-    if model = (desc ? desc.model : Property.find(value: name))
+    return if desc
+
+    @dirty = true
+    if existing = model = Property.find(value: name)
       raise "Classes do not match" unless model.is_a?(klass)
-      existing = true
     else
       model = klass.create(value: name)
     end
-    desc ||= PropertyDesc.new(model)
+    desc = PropertyDesc.new(model)
     @property_id_map[model.id] = desc
     @property_name_map[name] = desc
     existing ? nil : desc
@@ -356,7 +340,7 @@ class DataDescription
         end
       end
 
-      @dirty = false
+      @dirty = true
       cache_write
     end
   end

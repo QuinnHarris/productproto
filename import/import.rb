@@ -76,13 +76,13 @@ class GenericImport
   end
 
   def apply_data
-    if d.dirty?
-      puts "Cache Dirty!!!"
-    else
+    #if d.dirty?
+    #  puts "Cache Dirty!!!"
+    #else
       puts "Define Data"
       define_data
       #d.cache_write
-    end
+    #end
     puts "Apply Data"
     d.apply_data
   end
@@ -104,7 +104,7 @@ class GenericImport
   def apply_schema
     Supplier.db.transaction do
       define_schema
-      d.cache_write
+      d.cache_write if d.dirty?
     end
   end
 

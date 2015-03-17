@@ -45,6 +45,8 @@ class AlphaBroderImport < GenericImport
         puts "#{prop} (#{type}#{blank && '*'}): #{set.to_a.inspect}"
       end
     end
+
+    d.apply_property('GTIN Number', :string)
   end
 
   def define_data
@@ -78,6 +80,17 @@ class AlphaBroderImport < GenericImport
       items << row
     end
 
+    src_map = {
+        'Size Name' => 'size',
+        'Color Name' => 'color'
+    }
+    dst_column = 'Item Number'
+    dst_property = 'item_code'
+
+    #gtin_property = d.find_property('GTIN Number')
+
+    dst_property = d.find_property(dst_property)
+
     RubyProf.start
 
     puts "Main Loop"
@@ -94,15 +107,6 @@ class AlphaBroderImport < GenericImport
 
       rows = @items[row['Style Code']]
 
-      src_map = {
-          'Size Name' => 'size',
-          'Color Name' => 'color'
-      }
-      dst_column = 'Item Number'
-      dst_property = 'item_code'
-
-      dst_property = d.find_property(dst_property)
-
       src_set = Set.new
       dst_set = Set.new
       rows.each do |r|
@@ -118,10 +122,10 @@ class AlphaBroderImport < GenericImport
         raise "Duplicate dst:" if dst_set.include?(dst_value)
         dst_set << dst_value
 
-        dst_property.get_value(dst_value).set_predicate(values)
+        v = dst_property.get_value(dst_value)
+        v.set_predicate(values + [pd])
+        #v.implies(gtin_property.get_value(r['GTIN Number']))
       end
-
-      break
     end
 
     result = RubyProf.stop
