@@ -70,8 +70,3 @@ class Variable < Sequel::Model
     end
   end
 end
-
-
-class Instance < Variable
-
-end

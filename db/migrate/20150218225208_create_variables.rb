@@ -191,11 +191,12 @@ Sequel.migration do
     create_table :predicates do
       primary_key :id
       foreign_key :value_id, :values, null: false
-      column      :dependent_ids, 'integer[]', null: false
+      column      :assertion_dependent_ids, 'integer[]', null: false
+      column      :value_dependent_ids, 'integer[]', null: false
       TrueClass   :deleted, null: false, default: false
       foreign_key :created_user_id, :users, null: false
       DateTime    :created_at, null: false
-      index :dependent_ids, type: :gin
+      index :assertion_dependent_ids, type: :gin
     end
 
     create_table :value_naturals do

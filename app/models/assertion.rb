@@ -23,7 +23,7 @@ class AssertionRelation < Sequel::Model
                        Sequel.qualify(table_name, :access)).as(:access),
                    Sequel.+(:depth, 1).as(:depth) )
 
-    db.from(cte_table).with_recursive(cte_table, base_ds, r_ds, union_all: false)
+    db.from(cte_table).with_recursive(cte_table, base_ds, r_ds) #, union_all: false)
   end
 end
 

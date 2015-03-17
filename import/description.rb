@@ -27,11 +27,12 @@ class ModelDescription
   end
 
   private
+  # Through away model because we are currently not using it
   def create(params)
-    @model = type.create(params)
-    @id = model.id
+    m = type.create(params)
+    @id = m.id
     puts "+ #{type}: #{params.inspect} => #{@id}"
-    model
+    m
   end
 end
 
@@ -99,7 +100,11 @@ class PropertyDesc < VariableDescription
   end
 end
 
-class ProductDesc < VariableDescription
+class AssertionDesc < VariableDescription
+
+end
+
+class ProductDesc < AssertionDesc
   def initialize(data, value)
     super value
     @d = data
@@ -211,16 +216,28 @@ class PredicateDesc < ModelDescription
     @dependents, = super array
   end
 
-  def create(vd)
-    super(value_id: vd.id,
-          dependent_ids: dependents.map { |d| d.id } )
+  def dependent_split_ids
+    assertion_ids = []
+    value_ids = []
+    dependents.each do |dep|
+      if dep.is_a?(AssertionDesc)
+        assertion_ids << dep.id
+      elsif dep.is_a?(ValueDesc)
+        value_ids << dep.id
+      else
+        raise "Unknown dependent: #{dep}"
+      end
+    end
+    { assertion_dependent_ids: assertion_ids, value_dependent_ids: value_ids }
+  end
+
+  def create(vd, deleted = false)
+    super(dependent_split_ids.merge(value_id: vd.id, deleted: deleted))
   end
 
   # Change to use remove on existing predicate, consider permissions and context
   def remove(vd)
-    super(value_id: vd.id,
-          dependent_ids: dependents.map { |d| d.id },
-          deleted: true )
+    create(vd, true)
   end
 end
 
@@ -340,7 +357,7 @@ class DataDescription
         end
       end
 
-      @dirty = true
+      @dirty = false
       cache_write
     end
   end

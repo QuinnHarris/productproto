@@ -3,13 +3,24 @@ class Predicate < Sequel::Model
   plugin :pg_array_associations
 
   many_to_one :value
-  pg_array_to_many :dependents, class: :Variable
+  pg_array_to_many :assertion_dependents, class: :Assertion
+  pg_array_to_many :value_dependents, class: :Variable
   def dependents=(list)
-    ids = list.map do |obj|
+    assertion_ids = []
+    value_ids = []
+    list.each do |obj|
       raise "Unexpected type" unless obj.is_a?(Variable)
-      obj.id
+      if obj.is_a?(Assertion)
+        assertion_ids << obj.id
+      else
+        value_ids << obj.id
+      end
     end
-    set_column_value("dependent_ids=", Sequel.pg_array(ids))
+    set_column_value("assertion_dependent_ids=", Sequel.pg_array(assertion_ids))
+    set_column_value("value_dependent_ids=", Sequel.pg_array(value_ids))
+  end
+  def dependents
+    assertion_dependents + value_dependents
   end
 
   many_to_one :created_user, class: :User
@@ -17,17 +28,27 @@ class Predicate < Sequel::Model
   # Doin JSON SELECT json_agg(row_to_json(t)) FROM * t
   def self.decend_dataset(basis)
     Assertion
-    base_ds = AssertionRelation.decend_dataset(basis)
+    assertion_ds = AssertionRelation.decend_dataset(basis)
+    assertion_table = :assert_decend
 
-    base_ds = base_ds.select(Sequel.cast(nil, :integer).as(:id),
-                             Sequel.as(:id, :value_id),
-                             Sequel.cast(Sequel.pg_array([]), 'integer[]').as(:dependent_ids),
-                             Sequel.as(false, :deleted),
-                             Sequel.cast(nil, :integer).as(:created_user_id),
-                             Sequel.cast(nil, :timestamp).as(:created_at),
-                             #Sequel.as(0, :recurse_depth),
-                             Sequel.function(:array_agg, :id).over().as(:asserted_ids),
-                             Sequel.cast(Sequel.pg_array([]), 'integer[]').as(:predicate_ids),
+    predicate_ds = Predicate.dataset.where(
+        Sequel.pg_array_op(:assertion_dependent_ids)
+            .contained_by(Predicate.db.from(assertion_table).select(Sequel.function(:array_agg, :id))) )
+    predicate_table = :our_predicates
+    ds = assertion_ds.with(predicate_table, predicate_ds)
+
+
+    base_ds = db.from(assertion_table)
+                  .select(Sequel.cast(nil, :integer).as(:id),
+                          Sequel.as(:id, :value_id),
+                          Sequel.cast(nil, 'integer[]').as(:assertion_dependent_ids),
+                          Sequel.cast(nil, 'integer[]').as(:value_dependent_ids),
+                          Sequel.as(false, :deleted),
+                          Sequel.cast(nil, :integer).as(:created_user_id),
+                          Sequel.cast(nil, :timestamp).as(:created_at),
+                          #Sequel.as(0, :recurse_depth),
+                          Sequel.function(:array_agg, :id).over().as(:asserted_ids),
+                          Sequel.cast(Sequel.pg_array([]), 'integer[]').as(:predicate_ids),
     )
 
     cte_table = :predicate_recurse
@@ -39,9 +60,9 @@ class Predicate < Sequel::Model
                        .as(:agg)
 
 
-    r_ds = self.dataset.join(array_agg_ds,
+    r_ds = db.from(predicate_table).join(array_agg_ds,
                              Sequel.pg_array_op(:asserted_ids)
-                                 .contains(:dependent_ids))
+                                 .contains(:value_dependent_ids))
             .where(:id => Sequel.pg_array_op(:predicate_ids).all).invert
 
 
@@ -50,7 +71,8 @@ class Predicate < Sequel::Model
                           Sequel.pg_array_op(Sequel.function(:array_agg, :id).over()).concat(:predicate_ids).as(:predicate_ids)
     )
 
-    ds = db.from(cte_table).with_recursive(cte_table, base_ds, r_ds).select(*columns)
+    ds = ds.with_recursive(cte_table, base_ds, r_ds).from(cte_table).select(*columns)
+
 
     #ds = ds.group(:value_id).select(:value_id,
     #                                Sequel.function(:array_aggcat,
