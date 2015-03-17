@@ -76,16 +76,24 @@ class GenericImport
   end
 
   def apply_data
-    puts "Define Data"
-    define_data
+    if d.dirty?
+      puts "Cache Dirty!!!"
+    else
+      puts "Define Data"
+      define_data
+      #d.cache_write
+    end
     puts "Apply Data"
     d.apply_data
   end
 
   def define_schema
     {
-        SKU: :string,
+        product_code: :string,
+        item_code: :string,
         name: :natural,
+        size: :string,
+        color: :natural,
     }.each do |prop, type|
       if d.apply_property(prop.to_s, type)
         puts "#{prop} (#{type})"

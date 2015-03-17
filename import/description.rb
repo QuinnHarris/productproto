@@ -18,6 +18,7 @@ class ModelDescription
   end
 
   def marshal_dump
+    puts "MODEL DUMP #{@id}"
     [@id]
   end
 
@@ -28,9 +29,9 @@ class ModelDescription
 
   private
   def create(params)
-    puts "INSERTING #{type}: #{params.inspect}"
     @model = type.create(params)
     @id = model.id
+    puts "+ #{type}: #{params.inspect} => #{@id}"
     model
   end
 end
@@ -44,9 +45,11 @@ class VariableDescription < ModelDescription
     else
       @value = value
     end
+    raise "NO VALUE" unless @value
   end
 
   def value
+    puts "Values: #{self.class} #{@id} #{@value}"
     @value ||= model.value
   end
 
@@ -55,11 +58,13 @@ class VariableDescription < ModelDescription
   end
 
   def marshal_dump
+    puts "Variable DUMP: #{@id} #{@value}"
     [@id, value]
   end
 
   def marshal_load(array)
     @id, @value, *remain = array
+    raise "NO VALUE" unless @value
     remain
   end
 
@@ -79,13 +84,22 @@ class PropertyDesc < VariableDescription
   attr_reader :type
 
   def marshal_dump
-    super + [@type, @value_map.values]
+    values = @value_map.values
+    ids =values.map { |v| v.id }
+    puts "PROPERTY DUMP: #{@type}:#{@value} #{ids}"
+    raise "ADSFsf" if ids.include?(nil)
+    res = super + [@type, values]
+    res
   end
 
   def marshal_load(array)
-    @type, values = super array
+    @type, values, = super array
+    puts "PROP MAR ID: #{@id} #{@type} #{@value} #{values.length}"
     @value_map = {}
-    values.each { |d| @value_map[d.value] = d }
+    values.each { |d|
+      v = d.instance_variable_get('@value')
+      @value_map[v] = d
+    }
   end
 
   def get_value(value)
@@ -116,12 +130,24 @@ class ProductDesc < VariableDescription
   def set_value(property, value)
     pd = d.find_property(property)
     vd = pd.get_value(value)
-    vd.set_predicate(self)
+    vd.set_predicate([self])
+    vd
+  end
+
+  def set_values(property, values)
+    map = {}
+    pd = d.find_property(property)
+    values.each do |value|
+      vd = pd.get_value(value)
+      vd.set_predicate([self])
+      map[value] = vd
+    end
+    map
   end
 
   def set_implies(*values)
     values.flatten.each do |value|
-      value.set_predicate(self)
+      value.set_predicate([self])
     end
   end
 end
@@ -130,9 +156,19 @@ class ValueDesc < VariableDescription
   def initialize(property, value)
     super value
     @property = property
-    @predicates = []
+    @predicates = {}
   end
-  attr_reader :property, :predicates
+  attr_reader :property
+
+  def predicates
+    @predicates.values
+  end
+
+  def predicates_delete_if
+    @predicates.delete_if do |dep, pred|
+      yield pred
+    end
+  end
 
   def type
     property.type.value_class
@@ -143,27 +179,28 @@ class ValueDesc < VariableDescription
   end
 
   def marshal_dump
-    super + [@property, @predicates]
+    puts "VALUE DUMP: #{@value}"
+    super + [@property, @predicates.values]
   end
 
   def marshal_load(array)
-    @property, @predicates = super array
+    @property, predicates, = super array
+    @predicates = {}
+    predicates.each { |p| @predicates[p.dependents] = p }
   end
 
   def create
     super(property_id: property.id)
   end
 
-  def set_predicate(*dependents)
-    dependents = dependents.flatten
-    predicate = @predicates.find do |p|
-      (p.dependents.length == dependents.length) && (p.dependents - dependents).empty?
-    end
+  def set_predicate(dependents)
+    dependents = Set.new(dependents)
+    predicate = @predicates[dependents]
     if predicate
       predicate.touch!
     else
       predicate = PredicateDesc.new(dependents)
-      @predicates << predicate
+      @predicates[dependents] = predicate
     end
     predicate
   end
@@ -174,7 +211,7 @@ class PredicateDesc < ModelDescription
   def initialize(dependents)
     raise "Must have dependents" if dependents.empty?
     dependents.each {|d| raise "Dependent must be variable" unless d.is_a?(VariableDescription)}
-    @dependents = dependents
+    @dependents = dependents.is_a?(Set) ? dependents : Set.new(dependents)
   end
   attr_reader :dependents, :touched
   def touch!
@@ -184,11 +221,13 @@ class PredicateDesc < ModelDescription
   def type; Predicate; end
 
   def marshal_dump
-    super + [@dependents]
+    puts "PREDICATE DUMP"
+    super + [@dependents.to_a]
   end
 
   def marshal_load(array)
-    @dependents, = super array
+    dependents, = super array
+    @dependents = Set.new(dependents)
   end
 
   def create(vd)
@@ -215,8 +254,11 @@ class DataDescription
   end
   attr_reader :supplier
 
+  def dirty?; @dirty; end
+
   def marshal_dump
     {
+        dirty: true,
         properties: @property_id_map.values,
         products: @product_name_map.values,
     }
@@ -262,6 +304,7 @@ class DataDescription
     #  raise "Expected Product" unless p.is_a?(Product)
     #  return p
     #end
+    @dirty = true
     desc = @product_name_map[id]
     return desc if desc
     @product_name_map[id] = ProductDesc.new(self, id)
@@ -290,18 +333,22 @@ class DataDescription
         prod.create if prod.new?
       end
 
-      @property_id_map.values.each do |pd|
+      properties = @property_id_map.values
+      properties.each do |pd|
         pd.values.each do |vd|
           vd.create if vd.new?
         end
+      end
 
+      properties.each do |pd|
         pd.values.each do |vd|
-          vd.predicates.delete_if do |pred|
+          vd.predicates_delete_if do |pred|
             next if pred.touched
             if pred.new?
               pred.create(vd)
               next
             end
+            puts "REMOVE"
             # Only existing untouched left (must be removed)
             pred.remove(vd)
             true
@@ -309,6 +356,7 @@ class DataDescription
         end
       end
 
+      @dirty = false
       cache_write
     end
   end

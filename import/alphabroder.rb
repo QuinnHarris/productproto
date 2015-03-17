@@ -78,111 +78,55 @@ class AlphaBroderImport < GenericImport
       items << row
     end
 
+    RubyProf.start
+
     puts "Main Loop"
     CSV_foreach('styles.csv') do |row|
       next if row['Category Code'] == 'EMB'
 
-      #puts "Product: #{row['Style Code']}"
+      puts "Product: #{row['Style Code']}"
       pd = d.get_product(row['Style Code'])
-      pd.set_value('SKU', row['Style Code'])
+      pd.set_value('product_code', row['Style Code'])
       pd.set_value('name', row['Description'])
 
       pd.set_implies(@style_values[row['Style Code']]) if @style_values[row['Style Code']]
-    end
-  end
-
-  def find_dependents
-    puts "Loading"
-    list = []
-    headers = nil
-    CSV.open(File.join(@src_directory, 'items_R064.csv'), encoding: "ISO-8859-1") do |csv|
-      #csv.each { |r| list << r }
-      headers, *list = csv.to_a
-    end
 
 
-    exclude_common = %w(Company Domain Coming\ Soon Description)
-    exclude_headers = exclude_common + %w(Item\ Number)
-    exclude_dependent = exclude_common
+      rows = @items[row['Style Code']]
 
-    sequence_base = (0...headers.length).find_all { |i| !exclude_dependent.include?(headers[i]) }
+      src_map = {
+          'Size Name' => 'size',
+          'Color Name' => 'color'
+      }
+      dst_column = 'Item Number'
+      dst_property = 'item_code'
 
-    dependents_exclude = []
+      dst_property = d.find_property(dst_property)
 
-    puts "Processing"
-    headers.each_with_index do |name, index|
-      next if exclude_headers.include?(name)
-      puts name
-      sequence = sequence_base - [index]
-
-      established_dependents = []
-
-      (1..2).each do |size|
-        full_dependents = sequence.permutation(size).map { |a| a.sort }.uniq
-        full_dependents -= dependents_exclude
-
-        full_dependents.delete_if { |a| established_dependents.find { |e| (e-a).empty? } }
-
-        #puts "Pass: #{dependents}"
-
-        full_dependents.in_groups_of(100) do |dependents|
-          print '*'
-
-          dependents = dependents.compact.map { |l| [{}] + l }
-
-
-          matches = 0
-          list.each_with_index do |row, j|
-            current = row[index]
-
-            #current_values << current
-            #break if j > 100 and current_values.length == 1
-
-            #length = dependents.length
-            dependents.delete_if do |value_map, *a|
-              reference = a.map { |i| row[i] }
-              if dep = value_map[reference]
-                if current != dep
-                  #puts " - #{a.map { |i| headers[i]}}: #{current} != #{dep} for #{reference} @ #{j}"
-
-                  next true
-                else
-                  matches += 1
-                end
-              else
-                value_map[reference] = current
-                if j > 500 and value_map.length * 3 > j * 2
-                  #puts "X"
-                  dependents_exclude << a
-                  next true
-                end
-              end
-              false
-            end
-
-
-            if j > 1000 and matches == 0
-              puts "No Matches"
-              dependents = []
-              break
-            end
-
-            break if dependents.empty?
-          end
-
-          dependents = dependents.map { |value_map, *a| a }
-          #puts "Found: #{dependents}"
-          established_dependents += dependents
+      src_set = Set.new
+      dst_set = Set.new
+      rows.each do |r|
+        values = src_map.map do |column, property|
+          pd.set_value(property, r[column])
         end
+
+        src_values = values.map { |v| v.value }
+        raise "Duplicate src: #{value_values}" if src_set.include?(src_values)
+        src_set << src_values
+
+        dst_value = r[dst_column]
+        raise "Duplicate dst:" if dst_set.include?(dst_value)
+        dst_set << dst_value
+
+        dst_property.get_value(dst_value).set_predicate(values)
       end
 
-      if established_dependents.empty?
-        puts "  NO DEPENDENTS"
-      else
-        puts "  #{established_dependents.map { |a| a.map { |i| headers[i] }}}"
-      end
-
+      break
     end
+
+    result = RubyProf.stop
+    printer = RubyProf::FlatPrinter.new(result)
+    printer.print(File.open('profile.log', 'w'))
 
   end
 end
