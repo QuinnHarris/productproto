@@ -114,11 +114,13 @@ module Sequel
         # Doesn't work right if you use your own model initializers
         def initialize(values = {})
           if @context = DBContext.current!
-            values = values.dup
+            context_values = {}
             self.class.context_map.each do |prop, meth|
               raise "Context value already set" if values.has_key?(prop)
-              values[prop] = @context.send(meth)
+              context_values[prop] = @context.send(meth)
             end
+            # Ensures context values are enumerated first
+            values = context_values.merge(values)
           end
           super values
         end

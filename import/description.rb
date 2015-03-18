@@ -53,7 +53,7 @@ class VariableDescription < ModelDescription
   end
 
   def inspect
-    "\#<#{self.class} @id=#{@id} @value=#{@value}>"
+    "\#<#{self.class} @id=#{@id} @value=#{@value} @type=#{type}>"
   end
 
   def marshal_dump
@@ -194,6 +194,12 @@ class ValueDesc < VariableDescription
   end
 end
 
+class FunctionDiscreteDesc < ValueDesc
+  def type; FunctionDiscrete; end
+
+
+end
+
 
 class PredicateDesc < ModelDescription
   def initialize(dependents)
@@ -253,6 +259,7 @@ class DataDescription
   attr_reader :supplier
 
   def dirty?; @dirty; end
+  def changed?; @changed; end
 
   def marshal_dump
     {
@@ -265,7 +272,7 @@ class DataDescription
   def marshal_load(hash)
     hash[:properties].each do |property|
       @property_id_map[property.id] = property
-      if val = @property_name_map[property.value] && val != property
+      if val = @property_name_map[property.value]
         @property_name_map[property.value] = Array(val) + [property]
       else
         @property_name_map[property.value] = property
@@ -294,17 +301,10 @@ class DataDescription
   def cache_write
     # Use temporary file incase process is terminated during write
     print "Writing Cache to #{cache_file}:"
+    @changed = nil
     File.open(cache_file+'.temp','w') { |f| Marshal.dump(marshal_dump, f) }
     File.rename(cache_file+'.temp', cache_file)
     puts "DONE"
-  end
-
-  def find_property(name, type = nil)
-    props = Array(@property_name_map[name])
-    props = prop.find_all { |p| p.is_a?(type) } if type
-    raise "Can't find property: #{name} #{type}" if props.empty?
-    raise "Multiple property canidates: #{props}" if props.length > 1
-    props.first
   end
 
   def get_product(id)
@@ -318,23 +318,43 @@ class DataDescription
     @product_name_map[id] = ProductDesc.new(self, id)
   end
 
-  def apply_property(name, type = nil)
-    klass_s = "Property#{type.to_s.camelize}"
-    klass = Property.const_get(klass_s)
-    desc = @property_name_map[name]
-    return if desc && Array(desc).find { |d| d.type == klass }
-
-    @dirty = true
-    existing = model = klass.find(value: name)
-    model = klass.create(value: name) unless model
-    desc = PropertyDesc.new(model)
-    @property_id_map[model.id] = desc
-    if val = @property_name_map[name]
-      @property_name_map[name] = Array(val) + [desc]
+  private def find_properties(name, type = nil)
+    props = Array(@property_name_map[name])
+    if type
+      klass_s = "Property#{type.to_s.camelize}"
+      klass = Property.const_get(klass_s)
+      raise "Unknown class: #{klass_s}" unless klass
+      [props.find_all { |p| p.type == klass }, klass]
     else
-      @property_name_map[name] = desc
+      [props]
     end
-    existing ? nil : desc
+  end
+
+  def find_property(name, type = nil)
+    props, klass = find_properties(name, type)
+    raise "Can't find property: #{name} #{type}" if props.empty?
+    raise "Multiple property canidates: #{props}" if props.length > 1
+    props.first
+  end
+
+  def apply_property(name, type)
+    props, klass = find_properties(name, type)
+    return unless props.empty?
+
+    @changed = true
+    # !!!! Table inheritance should be fixed to not need find_all
+    models = klass.where(value: name).all.find_all { |m| m.is_a?(klass) }
+    raise "Multiple models" if models.length > 1
+    existing = model = models.first
+    model = klass.create(value: name) unless model
+    prop = PropertyDesc.new(model)
+    @property_id_map[model.id] = prop
+    if val = @property_name_map[name]
+      @property_name_map[name] = Array(val) + [prop]
+    else
+      @property_name_map[name] = prop
+    end
+    existing ? nil : prop
   end
 
   def apply_data

@@ -91,6 +91,8 @@ class AlphaBroderImport < GenericImport
 
     dst_property = d.find_property(dst_property)
 
+    price_property = d.find_property('price', :function_discrete)
+
     #RubyProf.start
 
     puts "Main Loop"
@@ -125,6 +127,16 @@ class AlphaBroderImport < GenericImport
         v = dst_property.get_value(dst_value)
         v.set_predicate(values + [pd])
         gtin_property.get_value(r['GTIN Number']).set_predicate([v, pd])
+
+        price_v = price_property.get_value({
+            Piece: 1,
+            Dozen: 12,
+            Case: Integer(r['Case Qty'])
+        }.each_with_object({}) do |(col, qty), hash|
+          hash[qty] = (Float(r[col.to_s]) * 1000.0).to_i
+        end)
+
+        price_v.set_predicate([v, pd])
       end
     end
 

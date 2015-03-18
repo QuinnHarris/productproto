@@ -12,15 +12,20 @@ class FunctionDiscrete < Function
   one_to_many :breaks, class: :FunctionDiscreteBreak, order: [:argument, :minimum]
 
   # Set Price
-  def set(hash)
-    hash.each do |input, value|
-      Array(input).each_with_index do |min, i|
-        add_break(argument: i, minimum: min, value: value)
+  def value=(hash)
+    db.transaction do
+      save if new? # Need ID for foreign key reference
+      hash.each do |input, value|
+        Array(input).each_with_index do |min, i|
+          brk = FunctionDiscreteBreak.new(function: self, value: value)
+          brk.send(:set_restricted, { argument: i, minimum: min }, [:argument, :minimum])
+          brk.save
+        end
       end
     end
   end
 
-  def get
+  def value
     breaks.each_with_object({}) do |brk, hash|
       (hash[brk.value] ||= [])[brk.argument] = brk.minimum
     end.each_with_object({}) do |(val, ary), hash|
@@ -30,7 +35,11 @@ class FunctionDiscrete < Function
 end
 
 class FunctionDiscreteBreak < Sequel::Model
-  many_to_one :functions, class: :FunctionDiscrete
+  plugin :context, created_user: :user
+
+  many_to_one :function, class: :FunctionDiscrete
+
+  many_to_one :created_user, class: :User
 end
 
 class FunctionDiscreteReplace < FunctionDiscrete

@@ -94,11 +94,13 @@ class GenericImport
         name: :natural_single,
         size: :string_set,
         color: :natural_set,
-        price: :function_discrete,
+        price: [:function_discrete, :integer_single],
         price_retail: :integer_single,
-    }.each do |prop, type|
-      if d.apply_property(prop.to_s, type)
-        puts "#{prop} (#{type})"
+    }.each do |prop, type_list|
+      Array(type_list).each do |type|
+        if d.apply_property(prop.to_s, type)
+          puts "#{prop} (#{type})"
+        end
       end
     end
   end
@@ -106,7 +108,7 @@ class GenericImport
   def apply_schema
     Supplier.db.transaction do
       define_schema
-      d.cache_write if d.dirty?
+      d.cache_write if d.changed?
     end
   end
 
