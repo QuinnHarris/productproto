@@ -89,11 +89,13 @@ class GenericImport
 
   def define_schema
     {
-        product_code: :string,
-        item_code: :string,
-        name: :natural,
-        size: :string,
-        color: :natural,
+        product_code: :string_single,
+        item_code: :string_single,
+        name: :natural_single,
+        size: :string_set,
+        color: :natural_set,
+        price: :function_discrete,
+        price_retail: :integer_single,
     }.each do |prop, type|
       if d.apply_property(prop.to_s, type)
         puts "#{prop} (#{type})"

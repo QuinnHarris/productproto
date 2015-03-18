@@ -265,7 +265,11 @@ class DataDescription
   def marshal_load(hash)
     hash[:properties].each do |property|
       @property_id_map[property.id] = property
-      @property_name_map[property.value] = property
+      if val = @property_name_map[property.value] && val != property
+        @property_name_map[property.value] = Array(val) + [property]
+      else
+        @property_name_map[property.value] = property
+      end
     end
     hash[:products].each do |product|
       product.instance_variable_set('@d', self)
@@ -295,8 +299,12 @@ class DataDescription
     puts "DONE"
   end
 
-  def find_property(name)
-    @property_name_map[name] || raise("Can't find property: #{name}")
+  def find_property(name, type = nil)
+    props = Array(@property_name_map[name])
+    props = prop.find_all { |p| p.is_a?(type) } if type
+    raise "Can't find property: #{name} #{type}" if props.empty?
+    raise "Multiple property canidates: #{props}" if props.length > 1
+    props.first
   end
 
   def get_product(id)
@@ -310,34 +318,40 @@ class DataDescription
     @product_name_map[id] = ProductDesc.new(self, id)
   end
 
-  def apply_property(name, type = nil, set = false)
-    klass_s = "Property#{set ? 'Set' : 'Single'}#{type.to_s.capitalize}"
+  def apply_property(name, type = nil)
+    klass_s = "Property#{type.to_s.camelize}"
     klass = Property.const_get(klass_s)
     desc = @property_name_map[name]
-    return if desc
+    return if desc && Array(desc).find { |d| d.type == klass }
 
     @dirty = true
-    if existing = model = Property.find(value: name)
-      raise "Classes do not match" unless model.is_a?(klass)
-    else
-      model = klass.create(value: name)
-    end
+    existing = model = klass.find(value: name)
+    model = klass.create(value: name) unless model
     desc = PropertyDesc.new(model)
     @property_id_map[model.id] = desc
-    @property_name_map[name] = desc
+    if val = @property_name_map[name]
+      @property_name_map[name] = Array(val) + [desc]
+    else
+      @property_name_map[name] = desc
+    end
     existing ? nil : desc
   end
 
   def apply_data
     Sequel::Model.db.transaction do
+      change = false
       @product_name_map.values.each do |prod|
-        prod.create if prod.new?
+        next unless prod.new?
+        change = true
+        prod.create
       end
 
       properties = @property_id_map.values
       properties.each do |pd|
         pd.values.each do |vd|
-          vd.create if vd.new?
+          next unless vd.new?
+          change = true
+          vd.create
         end
       end
 
@@ -345,6 +359,7 @@ class DataDescription
         pd.values.each do |vd|
           vd.predicates_delete_if do |pred|
             next if pred.touched
+            change = true
             if pred.new?
               pred.create(vd)
               next
@@ -358,7 +373,7 @@ class DataDescription
       end
 
       @dirty = false
-      cache_write
+      cache_write if change
     end
   end
 end

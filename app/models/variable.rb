@@ -1,13 +1,16 @@
 class Variable < Sequel::Model
   type_map = {
-      PropertySingleNatural: :properties,
-      PropertySingleString: nil,
-      PropertySingleFloat: nil,
-      PropertySingleInteger: nil,
-      PropertySingleBoolean: nil,
-      PropertySingleNull: nil,
-      PropertySetNatural: [nil, 1 * 2**8],
-      PropertySetString: nil,
+      PropertyNaturalSingle: :properties,
+      PropertyStringSingle: nil,
+      PropertyFloatSingle: nil,
+      PropertyIntegerSingle: nil,
+      PropertyBoolean: nil,
+      PropertyNull: nil,
+
+      PropertyNaturalSet: [nil, 1 * 2**8],
+      PropertyStringSet: nil,
+
+      PropertyFunctionDiscrete: [nil, 2 * 2**8],
 
       ValueNull: [:values, 8 * 2**8],
       ValueNatural: :value_naturals,
@@ -16,10 +19,10 @@ class Variable < Sequel::Model
       ValueInteger: :value_integers,
       ValueBoolean: :value_booleans,
 
-      PriceSingle: [:value_integers, 9 * 2**8],
-      PriceReplaceDiscrete: :functions,
-      PriceAddDiscrete: nil,
-      PriceMultiplyDiscrete: nil,
+      FunctionDiscrete: [:functions, 9 * 2**8],
+      FunctionDiscreteReplace: nil,
+      FunctionDiscreteAdd: nil,
+      FunctionDiscreteMultiply: nil,
 
       User: [:users, 16 * 2**8],
       Assertion: :assertions,
@@ -36,9 +39,9 @@ class Variable < Sequel::Model
       Property: :properties,
       PropertySingle: nil,
       PropertySet: nil,
+      PropertyFunction: nil,
       Value: :values,
-      Pricing: nil,
-      PriceDiscrete: :functions,
+      Function: :functions,
   }
 
   table_map = {}

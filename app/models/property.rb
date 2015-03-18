@@ -16,34 +16,43 @@ end
 class PropertySet < Property
 end
 
-class PropertySingleNull < Property
+class PropertyNull < Property
   set_value_class ValueNull
 end
 
 
 # Natural
-class PropertySingleNatural < PropertySingle
+class PropertyNaturalSingle < PropertySingle
   set_value_class ValueNatural
 end
-class PropertySetNatural < PropertySet
+class PropertyNaturalSet < PropertySet
   set_value_class ValueNatural
 end
 
 # String
-class PropertySingleString < PropertySingle
+class PropertyStringSingle < PropertySingle
   set_value_class ValueString
 end
-class PropertySetString < PropertySet
+class PropertyStringSet < PropertySet
   set_value_class ValueString
 end
 
 # Numbers
-class PropertySingleFloat < PropertySingle
+class PropertyFloatSingle < PropertySingle
   set_value_class ValueFloat
 end
-class PropertySingleInteger < PropertySingle
+class PropertyIntegerSingle < PropertySingle
   set_value_class ValueInteger
 end
-class PropertySingleBoolean < PropertySingle
+
+class PropertyBoolean < PropertySingle
   set_value_class ValueBoolean
+end
+
+# Functions
+class PropertyFunction < PropertySingle
+  set_value_class Function
+end
+class PropertyFunctionDiscrete < PropertyFunction
+  set_value_class FunctionDiscrete
 end

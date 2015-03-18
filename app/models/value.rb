@@ -32,26 +32,3 @@ class ValueBoolean < Value
   set_primary_key [:id, :created_at]
   set_context_map created_user: :user
 end
-
-
-# Pricing is a specific property value
-class Pricing < Value
-end
-
-class PriceSingle < Pricing
-end
-
-class PriceDiscrete < Pricing
-end
-class PriceReplaceDiscrete < PriceDiscrete
-end
-class PriceAddDiscrete < PriceDiscrete
-end
-class PriceMultiplyDiscrete < PriceDiscrete
-end
-
-class PriceDiscreteBreak < Sequel::Model
-end
-
-class PriceInput < Sequel::Model
-end

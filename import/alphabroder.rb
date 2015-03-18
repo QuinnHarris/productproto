@@ -38,7 +38,7 @@ class AlphaBroderImport < GenericImport
       if set == yes_no_set
         type = :boolean
       else
-        type = :natural
+        type = :natural_single
       end
 
       if d.apply_property(prop, type)
@@ -46,7 +46,7 @@ class AlphaBroderImport < GenericImport
       end
     end
 
-    d.apply_property('GTIN Number', :string)
+    d.apply_property('GTIN Number', :string_single)
   end
 
   def define_data
@@ -87,11 +87,11 @@ class AlphaBroderImport < GenericImport
     dst_column = 'Item Number'
     dst_property = 'item_code'
 
-    #gtin_property = d.find_property('GTIN Number')
+    gtin_property = d.find_property('GTIN Number')
 
     dst_property = d.find_property(dst_property)
 
-    RubyProf.start
+    #RubyProf.start
 
     puts "Main Loop"
     CSV_foreach('styles.csv') do |row|
@@ -124,13 +124,13 @@ class AlphaBroderImport < GenericImport
 
         v = dst_property.get_value(dst_value)
         v.set_predicate(values + [pd])
-        #v.implies(gtin_property.get_value(r['GTIN Number']))
+        gtin_property.get_value(r['GTIN Number']).set_predicate([v, pd])
       end
     end
 
-    result = RubyProf.stop
-    printer = RubyProf::FlatPrinter.new(result)
-    printer.print(File.open('profile.log', 'w'))
+    #result = RubyProf.stop
+    #printer = RubyProf::FlatPrinter.new(result)
+    #printer.print(File.open('profile.log', 'w'))
 
   end
 end
