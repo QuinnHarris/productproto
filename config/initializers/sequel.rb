@@ -30,7 +30,7 @@ Sequel::Model.plugin :timestamps
 Sequel::Model.plugin :factory_girl_support
 
 # PG streaming
-# Sequel::Model.db.extension :pg_streaming
+Sequel::Model.db.extension :pg_streaming
 # Sequel::Model.db.stream_all_queries = true
 
 module SequelRails

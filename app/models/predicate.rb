@@ -25,6 +25,38 @@ class Predicate < Sequel::Model
 
   many_to_one :created_user, class: :User
 
+  # def self.assert_dataset(basis)
+  #   Assertion
+  #   assertion_ds = AssertionRelation.decend_dataset(basis)
+  #
+  #   Predicate.dataset.where(
+  #       Sequel.pg_array_op(:assertion_dependent_ids)
+  #           .contained_by(assertion_ds.select(Sequel.function(:array_agg, :id))) )
+  # end
+
+  # Believed to be the same as the above version but runs faster 4s vs 16s
+  def self.assert_dataset(basis)
+    Assertion
+    assertion_ds = AssertionRelation.decend_dataset(basis)
+    assertion_table = :assert_decend
+
+    # First join predicates with assertion table selecting all rows that have
+    # one id in assertion_dependent_ids matching an assertion id
+    # For some reason doing this first makes the query much faster
+    # GIN index lookups with a large set is slow.
+    predicate_ds = dataset.join(assertion_table,
+                                Sequel.pg_array_op(:assertion_dependent_ids).contains([:assert_decend__id]))
+                    .select(Sequel::SQL::ColumnAll.new(table_name))
+    predicate_table = :our_predicates
+    ds = assertion_ds.with(predicate_table, predicate_ds)
+
+    # Filter
+    ds.from(predicate_table).where(
+        Sequel.pg_array_op(:assertion_dependent_ids)
+            .contained_by(Predicate.db.from(assertion_table).select(Sequel.function(:array_agg, :id))) )
+#      .select(Sequel::SQL::ColumnAll.new(predicate_table))
+  end
+
   # Doin JSON SELECT json_agg(row_to_json(t)) FROM * t
   def self.decend_dataset(basis)
     Assertion

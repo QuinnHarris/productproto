@@ -196,6 +196,7 @@ Sequel.migration do
       TrueClass   :deleted, null: false, default: false
       foreign_key :created_user_id, :users, null: false
       DateTime    :created_at, null: false
+      index :value_id
       index :assertion_dependent_ids, type: :gin
     end
 

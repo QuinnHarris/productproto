@@ -284,6 +284,10 @@ class DataDescription
     end
   end
 
+  def db_read
+    
+  end
+
   def cache_file
     Rails.root.join('import', 'cache', "#{supplier.value}.database").to_s
   end
