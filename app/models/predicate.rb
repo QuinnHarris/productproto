@@ -35,10 +35,10 @@ class Predicate < Sequel::Model
   # end
 
   # Believed to be the same as the above version but runs faster 4s vs 16s
-  def self.assert_dataset(basis)
-    Assertion
-    assertion_ds = AssertionRelation.decend_dataset(basis)
-    assertion_table = :assert_decend
+  def self.assert_dataset(assertion_table) #(basis)
+    #Assertion
+    #assertion_ds = AssertionRelation.decend_dataset(basis)
+    #assertion_table = :assert_decend
 
     # First join predicates with assertion table selecting all rows that have
     # one id in assertion_dependent_ids matching an assertion id
@@ -48,12 +48,15 @@ class Predicate < Sequel::Model
                                 Sequel.pg_array_op(:assertion_dependent_ids).contains([:assert_decend__id]))
                     .select(Sequel::SQL::ColumnAll.new(table_name))
     predicate_table = :our_predicates
-    ds = assertion_ds.with(predicate_table, predicate_ds)
+    ds = db.from(predicate_table).with(predicate_table, predicate_ds)
 
     # Filter
-    ds.from(predicate_table).where(
+    #ds.from(predicate_table).where(
+    ds = ds.where(
         Sequel.pg_array_op(:assertion_dependent_ids)
             .contained_by(Predicate.db.from(assertion_table).select(Sequel.function(:array_agg, :id))) )
+
+    ds.join(:variables, :id => :value_id)
 #      .select(Sequel::SQL::ColumnAll.new(predicate_table))
   end
 

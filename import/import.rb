@@ -25,23 +25,28 @@ class GenericImport
   end
   def self.create
     n = supplier_name
+    m = nil
     Supplier.db.transaction do
       raise "Already Exists: #{n}" if Supplier.find(value: n)
       # FIX !!!
       user = User.find(users__id: 1)
       raise "No user" unless user
 
-      Supplier.create(value: n, created_user_id: user.id)
+      m = Supplier.create(value: n, created_user_id: user.id)
 
-      o = self.new
-      o.apply_schema
-      o
+      #o = self.new
+      #o.apply_schema
+      #o
     end
+    m
   end
 
   def initialize
     supplier = Supplier.find(value: self.class.supplier_name)
-    raise "No Supplier" unless supplier
+    unless supplier
+      puts "!!! CREATING SUPPLIER: #{self.class.supplier_name}"
+      supplier = self.class.create
+    end
     @d = DataDescription.new supplier
 
     # Fix !!!
@@ -58,14 +63,14 @@ class GenericImport
   attr_reader :d
 
   def add_error(boom, id)
-    puts "+ #{id}: #{boom}"  unless ARGV.include?('nowarn')
+    puts "  + #{id}: #{boom}"  unless ARGV.include?('nowarn')
     @invalid_prods[boom.aspect] = (@invalid_prods[boom.aspect] || []) + [id]
     @invalid_values[boom.aspect] ||= (h = {}; h.default = 0; h)
     @invalid_values[boom.aspect][boom.value] += 1
   end
 
   def add_warning(boom, id = @supplier_num)
-    puts "* #{id}: #{boom}"  unless ARGV.include?('nowarn')
+    puts "  * #{id}: #{boom}"  unless ARGV.include?('nowarn')
     @warning_prods[boom.aspect] = (@warning_prods[boom.aspect] || []) + [id]
     @warning_values[boom.aspect] ||= (h = {}; h.default = 0; h)
     @warning_values[boom.aspect][boom.value] += 1
@@ -79,11 +84,11 @@ class GenericImport
     #if d.dirty?
     #  puts "Cache Dirty!!!"
     #else
-      puts "Define Data"
+      puts "Define Data:"
       define_data
       #d.cache_write
     #end
-    puts "Apply Data"
+    puts "Apply Data:"
     d.apply_data
   end
 
@@ -113,7 +118,7 @@ class GenericImport
   end
 
   def apply
-    puts "Schema"
+    puts "Define Schema:"
     apply_schema
     apply_data
   end

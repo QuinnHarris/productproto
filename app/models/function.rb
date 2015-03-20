@@ -25,12 +25,23 @@ class FunctionDiscrete < Function
     end
   end
 
+  # Similar to import description.rb
   def value
     breaks.each_with_object({}) do |brk, hash|
       (hash[brk.value] ||= [])[brk.argument] = brk.minimum
     end.each_with_object({}) do |(val, ary), hash|
       hash[ary] = val
     end
+  end
+
+  def self.value_valid?(value)
+    return false unless value.is_a?(Hash)
+    value.each do |list, value|
+      return false unless value.is_a?(Fixnum)
+      return false unless list.is_a?(Array)
+      list.each { |i| return false unless i.is_a?(Fixnum) }
+    end
+    true
   end
 end
 

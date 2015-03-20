@@ -10,6 +10,17 @@ class Property < PropertyValue
     one_to_many :property_values, class: key, key: :property_id, primary_key: :id
   end
   def self.value_class; @value_class; end
+
+  def self.property_name
+    name.gsub(/^Property/, '').underscore.to_sym
+  end
+
+  def self.class_get(type)
+    klass_s = "Property#{type.to_s.camelize}"
+    klass = const_get(klass_s)
+    raise "Unknown class: #{klass_s}" unless klass
+    klass
+  end
 end
 class PropertySingle < Property
 end

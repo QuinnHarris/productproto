@@ -31,25 +31,27 @@ class ModelDescription
   def create(params)
     m = type.create(params)
     @id = m.id
-    puts "+ #{type}: #{params.inspect} => #{@id}"
+    puts "  + #{type}: #{params.inspect} => #{@id}"
     m
   end
 end
 
 class VariableDescription < ModelDescription
-  def initialize(value)
+  def initialize(value, id = nil)
     if value.is_a?(Variable)
       @model = value
       @id = value.id
       @value = value.value
     else
       @value = value
+      @id = id
     end
-    raise "NO VALUE" unless @value
+    raise "NO VALUE" if @value.nil?
   end
 
   def value
-    @value ||= model.value
+    return @value unless @value.nil?
+    @value = model.value
   end
 
   def inspect
@@ -62,12 +64,12 @@ class VariableDescription < ModelDescription
 
   def marshal_load(array)
     @id, @value, *remain = array
-    raise "NO VALUE" unless @value
+    raise "NO VALUE: #{@id}" if @value.nil?
     remain
   end
 
   def create(params = {})
-    super(params.merge(value: value))
+    super(params.merge(value: @value))
   end
 end
 
@@ -89,7 +91,12 @@ class PropertyDesc < VariableDescription
     @type, @value_map, = super array
   end
 
+  def add_value(vd)
+    @value_map[vd.value] = vd
+  end
+
   def get_value(value)
+    value = type.value_class.value_transform(value)
     desc = @value_map[value]
     return desc if desc
     @value_map[value] = ValueDesc.new(self, value)
@@ -100,13 +107,75 @@ class PropertyDesc < VariableDescription
   end
 end
 
+class ValueDesc < VariableDescription
+  def initialize(property, value, id = nil)
+    @property = property
+    unless type.value_valid?(value)
+      raise "Invalid Value: #{property}: #{value}"
+    end
+
+    super value, id
+    @predicates = {}
+  end
+  attr_reader :property
+
+  def predicates
+    @predicates.values
+  end
+
+  def predicates_delete_if
+    @predicates.delete_if do |dep, pred|
+      yield pred
+    end
+  end
+
+  def type
+    property.type.value_class
+  end
+
+  def inspect
+    "#:<ValueDesc @id=#{@id} @value=#{@value} @property=#{@property.value} @predicates.length=#{@predicates.length}"
+  end
+
+  def marshal_dump
+    super + [@property, @predicates]
+  end
+
+  def marshal_load(array)
+    @property, @predicates, = super array
+  end
+
+  def create
+    super(property_id: property.id)
+  end
+
+  def add_predicate(predicate)
+    @predicates[predicate.dependents] = predicate
+  end
+
+  def set_predicate(dependents)
+    dependents = Set.new(dependents)
+    if predicate = @predicates[dependents]
+      predicate.touch!
+    else
+      add_predicate(PredicateDesc.new(dependents))
+    end
+  end
+end
+
+class FunctionDiscreteDesc < ValueDesc
+  def type; FunctionDiscrete; end
+
+end
+
 class AssertionDesc < VariableDescription
 
 end
 
+
 class ProductDesc < AssertionDesc
-  def initialize(data, value)
-    super value
+  def initialize(data, value, id = nil)
+    super value, id
     @d = data
   end
   attr_reader :d
@@ -143,73 +212,18 @@ class ProductDesc < AssertionDesc
   end
 end
 
-class ValueDesc < VariableDescription
-  def initialize(property, value)
-    super value
-    @property = property
-    @predicates = {}
-  end
-  attr_reader :property
-
-  def predicates
-    @predicates.values
-  end
-
-  def predicates_delete_if
-    @predicates.delete_if do |dep, pred|
-      yield pred
-    end
-  end
-
-  def type
-    property.type.value_class
-  end
-
-  def inspect
-    "#:<ValueDesc @id=#{@id} @value=#{@value} @property=#{@property.value} @predicates.length=#{@predicates.length}"
-  end
-
-  def marshal_dump
-    super + [@property, @predicates]
-  end
-
-  def marshal_load(array)
-    @property, @predicates, = super array
-  end
-
-  def create
-    super(property_id: property.id)
-  end
-
-  def set_predicate(dependents)
-    dependents = Set.new(dependents)
-    predicate = @predicates[dependents]
-    if predicate
-      predicate.touch!
-    else
-      predicate = PredicateDesc.new(dependents)
-      @predicates[dependents] = predicate
-    end
-    predicate
-  end
-end
-
-class FunctionDiscreteDesc < ValueDesc
-  def type; FunctionDiscrete; end
-
-
-end
-
 
 class PredicateDesc < ModelDescription
-  def initialize(dependents)
+  def initialize(dependents, id = nil)
     raise "Must have dependents" if dependents.empty?
-    dependents.each {|d| raise "Dependent must be variable" unless d.is_a?(VariableDescription)}
+    dependents.each {|d| raise "Dependent must be variable: #{d}" unless d.is_a?(VariableDescription)}
     @dependents = dependents.is_a?(Set) ? dependents : Set.new(dependents)
+    @id = id
   end
   attr_reader :dependents, :touched
   def touch!
     @touched = true unless new?
+    self
   end
 
   def type; Predicate; end
@@ -234,7 +248,7 @@ class PredicateDesc < ModelDescription
         raise "Unknown dependent: #{dep}"
       end
     end
-    { assertion_dependent_ids: assertion_ids, value_dependent_ids: value_ids }
+    { assertion_dependent_ids: assertion_ids.sort, value_dependent_ids: value_ids.sort }
   end
 
   def create(vd, deleted = false)
@@ -254,7 +268,12 @@ class DataDescription
     @property_id_map = {}
     @property_name_map = {}
     @product_name_map = {}
-    cache_read if cache_exists?
+    if cache_exists?
+      cache_load
+    else
+      @changed = true
+      db_load
+    end
   end
   attr_reader :supplier
 
@@ -269,23 +288,166 @@ class DataDescription
     }
   end
 
+  private def add_property(property)
+    @property_id_map[property.id] = property
+    if val = @property_name_map[property.value]
+      @property_name_map[property.value] = Array(val) + [property]
+    else
+      @property_name_map[property.value] = property
+    end
+  end
+
   def marshal_load(hash)
     hash[:properties].each do |property|
-      @property_id_map[property.id] = property
-      if val = @property_name_map[property.value]
-        @property_name_map[property.value] = Array(val) + [property]
-      else
-        @property_name_map[property.value] = property
-      end
+      add_property(property)
     end
     hash[:products].each do |product|
       product.instance_variable_set('@d', self)
       @product_name_map[product.value] = product
     end
+    @dirty = hash[:dirty]
   end
 
-  def db_read
-    
+  private def stream_group_by(dataset, key_column)
+    current_id = nil
+    current_set = []
+    dataset.order(key_column).stream.each do |hash|
+      if hash[key_column] == current_id
+        current_set << hash
+      else
+        yield current_id, current_set if current_id
+        current_id = hash[key_column]
+        current_set = [hash]
+      end
+    end
+    yield current_id, current_set if current_id
+  end
+
+  def db_load
+    def id_to_class(id, type)
+      klass_s = Variable.cti_model_map[id]
+      klass = Variable.send(:constantize, klass_s)
+      raise "Must be a #{type}: #{klass}" unless klass.ancestors.include?(type)
+      klass
+    end
+
+    def row_to_table(hash)
+      klass_s = Variable.cti_model_map[hash[:type]]
+      Variable.cti_table_map[klass_s]
+    end
+
+    puts "Loading from Database:"
+
+    Variable.db.transaction do
+      print "  Assertions: "
+      assertion_ds = AssertionRelation.decend_dataset([@supplier.id])
+      assertion_table = :assert_decend
+      Variable.db.create_table assertion_table, temp: true, on_commit: :drop, as: assertion_ds
+
+      variable_map = {}
+      Variable.db[assertion_table].join(:assertions, :id => :id).stream.each do |assert_hash|
+        klass = id_to_class(assert_hash[:type], Assertion)
+        next if klass == Supplier and assert_hash[:id] == @supplier.id
+        raise "Unexpected class: #{klass}" unless klass == Product
+
+        pd = ProductDesc.new(self, assert_hash[:value], assert_hash[:id])
+        variable_map[pd.id] = pd
+        @product_name_map[pd.value] = pd
+      end
+
+      puts @product_name_map.length
+      if @product_name_map.empty?
+        puts  "    NO ASSERTIONS"
+        return
+      end
+
+
+      predicate_map = {}
+      table_map = {}
+
+      print "  Predicates: "
+      Predicate.assert_dataset(assertion_table).stream.each do |value_hash|
+        table_s = row_to_table(value_hash)
+
+        id = value_hash[:value_id]
+
+        unless predicate_map[id]
+          (table_map[table_s] ||= {})[id] = value_hash[:type]
+          predicate_map[id] = []
+        end
+
+        predicate_map[id] << [value_hash[:id],
+                              value_hash[:assertion_dependent_ids] + value_hash[:value_dependent_ids]]
+      end
+
+      puts predicate_map.length
+      if predicate_map.empty?
+        puts "    NO PREDICATES"
+        return
+      end
+
+
+      function_break_map = {}
+      function_map = table_map[:functions]
+      print "  Function Breaks: "
+
+      stream_group_by(FunctionDiscreteBreak.dataset.naked!.where(:function_id => function_map.keys),
+                      :function_id) do |current_id, current_set|
+        # Similar to model function.rb
+        val = function_break_map[current_id] = current_set.each_with_object({}) do |brk, hash|
+          (hash[brk[:value]] ||= [])[brk[:argument]] = brk[:minimum]
+        end.each_with_object({}) do |(val, ary), hash|
+          hash[ary] = val
+        end
+      end if function_map
+      puts function_break_map.length
+
+
+      value_list = []
+      table_map.each do |table_name, sub_map|
+        print "  Value (#{table_name}): "
+        last_length = value_list.length
+        Value.db.from(table_name).join(:values, :id => :id)
+            .where(:values__id => sub_map.keys).stream.each do |sub_hash|
+          @property_id_map[sub_hash[:property_id]] = true
+
+          if table_name == :functions
+            value = function_break_map[sub_hash[:id]]
+            raise "No Function Value: #{sub_hash[:id]}" unless value
+          else
+            value = sub_hash[:value]
+          end
+
+          vs = [sub_hash[:id], sub_hash[:property_id], sub_map[sub_hash[:id]], value]
+          value_list << vs
+        end
+        puts value_list.length - last_length
+      end
+      table_map = nil
+
+      print "  Properties: "
+      Property.dataset.where(:variables__id => @property_id_map.keys).stream.each do |property|
+        add_property PropertyDesc.new(property)
+      end
+      puts @property_id_map.length
+
+      puts "  Assembling"
+      value_list.map do |value_id, property_id, type_id, value|
+        property = @property_id_map[property_id]
+        value_class = id_to_class(type_id, Value)
+        raise "Properby value mismatch" unless property.type.value_class == value_class
+        variable_map[value_id] = vd = ValueDesc.new(property, value, value_id)
+        property.add_value vd
+      end.each do |vd|
+        predicate_map[vd.id].each do |predicate_id, list|
+          dependents = list.map { |i| variable_map[i] }
+          raise "Empty Dependent" if dependents.empty?
+          raise "Dependent not mapped: #{list} => #{dependents} " if dependents.include?(nil)
+          vd.add_predicate PredicateDesc.new(dependents, predicate_id)
+        end
+      end
+
+    end
   end
 
   def cache_file
@@ -296,38 +458,36 @@ class DataDescription
     File.exists?(cache_file)
   end
 
-  def cache_read
-    print "Reading Cache from #{cache_file}: "
+  def cache_load
+    print "Loading from Cache #{cache_file}: "
     File.open(cache_file) { |f| marshal_load(Marshal.load(f)) }
     puts "DONE"
   end
 
   def cache_write
     # Use temporary file incase process is terminated during write
-    print "Writing Cache to #{cache_file}:"
+    print "Writing Cache to #{cache_file}: "
     @changed = nil
     File.open(cache_file+'.temp','w') { |f| Marshal.dump(marshal_dump, f) }
     File.rename(cache_file+'.temp', cache_file)
     puts "DONE"
   end
 
-  def get_product(id)
+  def get_product(name)
     #if p = supplier.predecessors_dataset.find(name: id)
     #  raise "Expected Product" unless p.is_a?(Product)
     #  return p
     #end
     @dirty = true
-    desc = @product_name_map[id]
+    desc = @product_name_map[name]
     return desc if desc
-    @product_name_map[id] = ProductDesc.new(self, id)
+    @product_name_map[name] = ProductDesc.new(self, name)
   end
 
   private def find_properties(name, type = nil)
     props = Array(@property_name_map[name])
     if type
-      klass_s = "Property#{type.to_s.camelize}"
-      klass = Property.const_get(klass_s)
-      raise "Unknown class: #{klass_s}" unless klass
+      klass = Property.class_get(type)
       [props.find_all { |p| p.type == klass }, klass]
     else
       [props]
@@ -352,12 +512,7 @@ class DataDescription
     existing = model = models.first
     model = klass.create(value: name) unless model
     prop = PropertyDesc.new(model)
-    @property_id_map[model.id] = prop
-    if val = @property_name_map[name]
-      @property_name_map[name] = Array(val) + [prop]
-    else
-      @property_name_map[name] = prop
-    end
+    add_property prop
     existing ? nil : prop
   end
 
@@ -370,12 +525,22 @@ class DataDescription
         prod.create
       end
 
+      unused_values = []
       properties = @property_id_map.values
       properties.each do |pd|
-        pd.values.each do |vd|
+        unused = pd.values.map do |vd|
           next unless vd.new?
+          next vd if vd.predicates.empty?
           change = true
           vd.create
+          nil
+        end.compact
+        unused_values << [pd, unused] unless unused.empty?
+      end
+      unless unused_values.empty?
+        puts "  * Values Not Used:"
+        unused_values.each do |pd, unused|
+          puts "    #{pd.value} (#{pd.type.property_name}): #{unused.map { |vd| vd.value}.join(', ')}"
         end
       end
 

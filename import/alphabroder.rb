@@ -8,7 +8,9 @@ class AlphaBroderImport < GenericImport
   end
 
   def CSV_foreach(file, &block)
+    print "  Loading #{file}: "
     CSV.foreach(File.join(@src_directory, file), encoding: "ISO-8859-1", headers: :first_row, &block)
+    puts "DONE"
   end
 
   def define_schema
@@ -50,7 +52,6 @@ class AlphaBroderImport < GenericImport
   end
 
   def define_data
-    puts "Start"
     feature_map_cols = %w(product-code feature-code)
     property_map = {}
     CSV_foreach('features.csv') do |row|
@@ -73,7 +74,6 @@ class AlphaBroderImport < GenericImport
       values << property.get_value(row['description'])
     end
 
-    puts "Load Items"
     @items = {}
     CSV_foreach('items_R064.csv') do |row|
       items = (@items[row['Style Code']] ||= [])
@@ -93,13 +93,11 @@ class AlphaBroderImport < GenericImport
 
     price_property = d.find_property('price', :function_discrete)
 
-    #RubyProf.start
 
-    puts "Main Loop"
     CSV_foreach('styles.csv') do |row|
       next if row['Category Code'] == 'EMB'
 
-      puts "Product: #{row['Style Code']}"
+      print "#{row['Style Code']}, "
       pd = d.get_product(row['Style Code'])
       pd.set_value('product_code', row['Style Code'])
       pd.set_value('name', row['Description'])
@@ -133,16 +131,11 @@ class AlphaBroderImport < GenericImport
             Dozen: 12,
             Case: Integer(r['Case Qty'])
         }.each_with_object({}) do |(col, qty), hash|
-          hash[qty] = (Float(r[col.to_s]) * 1000.0).to_i
+          hash[[qty]] = (Float(r[col.to_s]) * 1000.0).to_i
         end)
 
         price_v.set_predicate([v, pd])
       end
     end
-
-    #result = RubyProf.stop
-    #printer = RubyProf::FlatPrinter.new(result)
-    #printer.print(File.open('profile.log', 'w'))
-
   end
 end
