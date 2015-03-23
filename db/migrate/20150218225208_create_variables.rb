@@ -1,4 +1,7 @@
 Sequel.migration do
+  # @> is about twice as fast with intarray
+  # CREATE EXTENSION intarray
+
   change do
 
     create_table :locales do
@@ -198,7 +201,7 @@ Sequel.migration do
       DateTime    :created_at, null: false
       #index :value_id
       unique [:value_id, :assertion_dependent_ids, :value_dependent_ids]
-      index :assertion_dependent_ids, type: :gin
+      index 'assertion_dependent_ids gin__int_ops', type: :gin
     end
 
     create_table :value_naturals do
