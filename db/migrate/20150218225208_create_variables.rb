@@ -52,56 +52,56 @@ Sequel.migration do
       Integer     :access, default: 2147483647
     end
 
-    # # array_agg might work in 9.5 https://wiki.postgresql.org/wiki/Todo
-    # run %(
-    #   CREATE AGGREGATE array_aggcat (anyarray)
-    #   (   sfunc = array_cat,
-    #       stype = anyarray,
-    #       initcond = '{}'
-    #   );
-    # )
-    #
-    # # Use stored procedure and trigger to test for cycles
-    # # This will not detect cycles when two transactions are opened
-    # # simultaneously that together insert rows causing a cycle
-    # run %(
-    #   CREATE FUNCTION cycle_test() RETURNS TRIGGER AS $$
-    #   DECLARE
-    #     cycle_path integer ARRAY;
-    #   BEGIN
-    #     IF (TG_OP = 'UPDATE' AND
-    #         NEW.successor_id = OLD.successor_id AND
-    #         NEW.predecessor_id = OLD.predecessor_id) THEN
-    #       RETURN NULL;
-    #     END IF;
-    #
-    #     WITH RECURSIVE assertion_decend AS (
-    #         SELECT NEW.successor_id AS id,
-    #                ARRAY[NEW.predecessor_id, NEW.successor_id] AS path,
-    #                false AS cycle
-    #       UNION
-    #         SELECT assertion_relations.successor_id,
-    #                assertion_decend.path || assertion_relations.successor_id,
-    #          assertion_relations.successor_id = ANY(assertion_decend.path)
-    #           FROM assertion_relations
-    #       INNER JOIN assertion_decend
-    #         ON assertion_relations.predecessor_id = assertion_decend.id
-    #           WHERE NOT assertion_decend.cycle
-    #     ) SELECT path INTO cycle_path
-    #         FROM assertion_decend WHERE cycle LIMIT 1;
-    #
-    #     IF FOUND THEN
-    #       RAISE EXCEPTION 'cycle found %', cycle_path;
-    #     END IF;
-    #
-    #     RETURN NULL;
-    #   END
-    #   $$ LANGUAGE plpgsql;
-    #
-    #   CREATE CONSTRAINT TRIGGER cycle_test
-    #     AFTER INSERT OR UPDATE ON assertion_relations
-    #     FOR EACH ROW EXECUTE PROCEDURE cycle_test();
-    # )
+    # array_agg might work in 9.5 https://wiki.postgresql.org/wiki/Todo
+    run %(
+      CREATE AGGREGATE array_aggcat (anyarray)
+      (   sfunc = array_cat,
+          stype = anyarray,
+          initcond = '{}'
+      );
+    )
+
+    # Use stored procedure and trigger to test for cycles
+    # This will not detect cycles when two transactions are opened
+    # simultaneously that together insert rows causing a cycle
+    run %(
+      CREATE FUNCTION cycle_test() RETURNS TRIGGER AS $$
+      DECLARE
+        cycle_path integer ARRAY;
+      BEGIN
+        IF (TG_OP = 'UPDATE' AND
+            NEW.successor_id = OLD.successor_id AND
+            NEW.predecessor_id = OLD.predecessor_id) THEN
+          RETURN NULL;
+        END IF;
+
+        WITH RECURSIVE assertion_decend AS (
+            SELECT NEW.successor_id AS id,
+                   ARRAY[NEW.predecessor_id, NEW.successor_id] AS path,
+                   false AS cycle
+          UNION
+            SELECT assertion_relations.successor_id,
+                   assertion_decend.path || assertion_relations.successor_id,
+             assertion_relations.successor_id = ANY(assertion_decend.path)
+              FROM assertion_relations
+          INNER JOIN assertion_decend
+            ON assertion_relations.predecessor_id = assertion_decend.id
+              WHERE NOT assertion_decend.cycle
+        ) SELECT path INTO cycle_path
+            FROM assertion_decend WHERE cycle LIMIT 1;
+
+        IF FOUND THEN
+          RAISE EXCEPTION 'cycle found %', cycle_path;
+        END IF;
+
+        RETURN NULL;
+      END
+      $$ LANGUAGE plpgsql;
+
+      CREATE CONSTRAINT TRIGGER cycle_test
+        AFTER INSERT OR UPDATE ON assertion_relations
+        FOR EACH ROW EXECUTE PROCEDURE cycle_test();
+    )
 
     create_table :authenticates do
       primary_key :id
@@ -201,8 +201,9 @@ Sequel.migration do
       DateTime    :created_at, null: false
       #index :value_id
       unique [:value_id, :assertion_dependent_ids, :value_dependent_ids]
-      index 'assertion_dependent_ids gin__int_ops', type: :gin
+      #index 'assertion_dependent_ids'.to_sym, type: :gin
     end
+    run 'CREATE INDEX "predicates_assertion_dependent_ids" ON "predicates" USING gin (assertion_dependent_ids gin__int_ops)'
 
     create_table :value_naturals do
       foreign_key :id, :values, null: false
