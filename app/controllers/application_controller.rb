@@ -22,7 +22,7 @@ class ApplicationController < ActionController::Base
     }
 
     if parameters[:id] && parameters[:id].match(/^\d+$/)
-      access_attributes[:id] = Integer(parameters.delete(:id))
+      access_attributes[:action_id] = Integer(parameters.delete(:id))
     end
 
     spam_email = nil

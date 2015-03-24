@@ -98,7 +98,7 @@ class ProductsController < ApplicationController
     }
   end
 
-  def json
+  def show
     # product
     #   properties
     #     values
@@ -106,5 +106,9 @@ class ProductsController < ApplicationController
     # {
     #   "product":
     # }
+    result = Predicate.decend_dataset([params[:id].to_i]).first[:row_to_json]
+    respond_to do |format|
+      format.json { render :json => result }
+    end
   end
 end
