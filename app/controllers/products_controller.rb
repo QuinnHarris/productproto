@@ -97,4 +97,14 @@ class ProductsController < ApplicationController
         images: @images
     }
   end
+
+  def json
+    # product
+    #   properties
+    #     values
+    #       predicates
+    # {
+    #   "product":
+    # }
+  end
 end

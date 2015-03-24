@@ -106,16 +106,64 @@ class Predicate < Sequel::Model
                           Sequel.pg_array_op(Sequel.function(:array_agg, :id).over()).concat(:predicate_ids).as(:predicate_ids)
     )
 
-    ds = ds.with_recursive(cte_table, base_ds, r_ds).from(cte_table).select(*columns)
+    ds = ds.with_recursive(cte_table, base_ds, r_ds)#.from(cte_table).select(*columns)
 
 
-    #ds = ds.group(:value_id).select(:value_id,
-    #                                Sequel.function(:array_aggcat,
-    #                                                Sequel.pg_array([:dependent_ids])).as(:dependent_set))
+    refine_ds = db.from(cte_table).group(:value_id)
+             .select(:value_id,
+                     Sequel.function(:array_aggcat,
+                                     Sequel.pg_array([Sequel.pg_array(:assertion_dependent_ids)
+                                         .concat(:value_dependent_ids)])
+                     ).as(:dependent_ids))
 
-    #ds = ds.from_self.join(:variables, :id => :value_id).select(:id, :type, :dependent_set)
+    #ds = ds.from_self
+    variables_ds = db.from(refine_ds)
+                       .join(:variables, :id => :value_id)
+                       .join(:values, :id => :id)
+                       .join(:variable_type_map, :id => :variables__type)
+             .select(:variables__id, Sequel.as(:name, :type), :table, :dependent_ids, :property_id)
+    variables_table = :our_variables
+
+    ds = ds.with(variables_table, variables_ds)
+
+    exprs = Value.descendants.map do |klass|
+      d = db.from(variables_table)
+              .where(:table => klass.table_name.to_s)
+              .select(Sequel.qualify(variables_table, :id), :type, :dependent_ids, :property_id)
+      if klass.table_name == :values
+        d.select_append(Sequel.as(nil, :value))
+      else
+        d.join(klass.table_name, :id => :id)
+            .select_append(Sequel.function(:to_json, :value).as(:value))
+      end
+    end
+
+    values_ds = exprs[1..-1].inject(exprs.first) { |a, b| a.union(b, all: true, from_self: false) }
+    values_table = :our_values
+
+    ds = ds.with(values_table, values_ds)
 
 
+    lateral_ds = db.from(db.from(values_table)
+                             .where(:properties__id => :property_id)
+                             .select(:id, :type, :dependent_ids, :value).as(:r))
+                     .select(Sequel.function(:json_agg, Sequel.function(:row_to_json, :r)).as(:values)).lateral
+
+    properties_js_ds = ds.from(
+        db.from(:properties).join(:variables, :id => :id).join(:variable_type_map, :id => :type)
+            .where(:properties__id => db.from(values_table).select(:property_id)).join(lateral_ds, true)
+            .select(:properties__id, Sequel.as(:name, :type), :value, :values).as(:r)
+    ).select(Sequel.function(:json_agg, Sequel.function(:row_to_json, :r))).as(:properties)
+
+    # # Screws up the query plan, does sequential search over variables!
+    # assertions_js_ds = db.from(assertion_table
+    #     db.from(assertion_table).join(:variables, :id => :id).join(:variable_type_map, :id => :type)
+    #                          .select(:variables__id, Sequel.as(:name, :type), :access, :depth).as(:r)
+    # ).select(Sequel.function(:json_agg, Sequel.function(:row_to_json, assertion_table))).as(:assertions)
+
+    assertions_js_ds = db.from(assertion_table).select(Sequel.function(:array_agg, :id)).as(:assertion_ids)
+
+    ds.from(db.select(assertions_js_ds, properties_js_ds).as(:r)).select(Sequel.function(:row_to_json, :r))
   end
 
   # !!! IMPLEMENT

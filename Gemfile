@@ -41,7 +41,7 @@ gem 'ember-rails'
 gem 'emblem-rails'
 
 # Needed to work on ember 1.9
-gem 'emblem-source', git:'https://github.com/machty/emblem.js.git'
+#gem 'emblem-source', git:'https://github.com/machty/emblem.js.git'
 
 
 gem 'user_agent_parser'

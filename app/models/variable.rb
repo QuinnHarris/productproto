@@ -72,4 +72,16 @@ class Variable < Sequel::Model
       var.predicate_on(self)
     end
   end
+
+  def self.update_map
+    db.transaction do
+      ds = db[:variable_type_map]
+      ds.delete
+      cti_model_map.each do |id, type|
+        table = cti_table_map[type]
+        ds.insert(id: id, name: type.to_s, table: table.to_s)
+      end
+    end
+
+  end
 end
