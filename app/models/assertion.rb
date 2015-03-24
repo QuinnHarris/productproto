@@ -18,7 +18,7 @@ class AssertionRelation < Sequel::Model
 
     r_ds = r_ds.select(
                    Sequel.qualify(Variable.table_name, :id),
-                   Sequel.qualify(Variable.table_name, :type),
+                   Sequel.qualify(Variable.table_name, :type_id),
                    (Sequel.qualify(cte_table, :access).sql_number &
                        Sequel.qualify(table_name, :access)).as(:access),
                    Sequel.+(:depth, 1).as(:depth) )

@@ -16,10 +16,16 @@ Sequel.migration do
       primary_key [:predecessor_id, :successor_id]
     end
 
+    create_table :variable_types do
+      primary_key :id
+      String      :type, null: false
+      unique      [:type]
+      String      :table, null: false
+    end
 
     create_table :variables do
       primary_key :id
-      Integer     :type, null: false
+      foreign_key :type_id, null: false
     end
 
     create_table :assertions do
@@ -59,13 +65,13 @@ Sequel.migration do
           stype = anyarray,
           initcond = '{}'
       );
-    )
+    ) if false
 
     # Use stored procedure and trigger to test for cycles
     # This will not detect cycles when two transactions are opened
     # simultaneously that together insert rows causing a cycle
     run %(
-      CREATE FUNCTION cycle_test() RETURNS TRIGGER AS $$
+      CREATE OR REPLACE FUNCTION cycle_test() RETURNS TRIGGER AS $$
       DECLARE
         cycle_path integer ARRAY;
       BEGIN
@@ -263,13 +269,11 @@ Sequel.migration do
 
     create_table :function_discrete_breaks do
       foreign_key :function_id, :functions, null: false
-      Integer     :argument, null: false
-      check { argument >= 0 }
-      Integer     :minimum, null: false
+      column      :minimums, 'integer[]', null: false
       foreign_key :created_user_id, :users, null: false
       DateTime    :created_at, null: false
-      primary_key [:function_id, :argument, :minimum, :created_at]
-      Integer     :value, null: false
+      primary_key [:function_id, :minimums, :created_at]
+      Integer     :value, null: true # Use null to remove
     end
 
     create_table :function_scopes do

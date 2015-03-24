@@ -15,12 +15,10 @@ class FunctionDiscrete < Function
   def value=(hash)
     db.transaction do
       save if new? # Need ID for foreign key reference
-      hash.each do |input, value|
-        Array(input).each_with_index do |min, i|
-          brk = FunctionDiscreteBreak.new(function: self, value: value)
-          brk.send(:set_restricted, { argument: i, minimum: min }, [:argument, :minimum])
-          brk.save
-        end
+      hash.each do |minimums, value|
+        brk = FunctionDiscreteBreak.new(function: self, value: value)
+        brk.send(:set_restricted, { minimums: minimums }, [:minimums])
+        brk.save
       end
     end
   end
@@ -28,9 +26,7 @@ class FunctionDiscrete < Function
   # Similar to import description.rb
   def value
     breaks.each_with_object({}) do |brk, hash|
-      (hash[brk.value] ||= [])[brk.argument] = brk.minimum
-    end.each_with_object({}) do |(val, ary), hash|
-      hash[ary] = val
+      hash[brk.minimums.to_a] = brk.value
     end
   end
 

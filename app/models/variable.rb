@@ -57,7 +57,7 @@ class Variable < Sequel::Model
     index += 1
   end
   #plugin :insert_returning_select
-  plugin :improved_class_table_inheritance, key: :type, table_map: table_map, model_map: model_map
+  plugin :improved_class_table_inheritance, key: :type_id, table_map: table_map, model_map: model_map
 
   many_to_one :created_user, class: :User
   many_to_one :locale
@@ -73,13 +73,19 @@ class Variable < Sequel::Model
     end
   end
 
-  def self.update_map
+  def self.update_types
     db.transaction do
-      ds = db[:variable_type_map]
-      ds.delete
+      ds = db[:variable_types]
+      existing = {}
+      ds.all.each { |hash| existing[hash[:id]] = hash }
       cti_model_map.each do |id, type|
         table = cti_table_map[type]
-        ds.insert(id: id, name: type.to_s, table: table.to_s)
+        hash = { id: id, type: type.to_s, table: table.to_s }
+        if prev = existing[id]
+          ds.where(id: id).update(hash.except(:id)) unless prev == hash
+        else
+          ds.insert(hash)
+        end
       end
     end
 

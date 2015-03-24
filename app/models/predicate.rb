@@ -120,21 +120,34 @@ class Predicate < Sequel::Model
     variables_ds = db.from(refine_ds)
                        .join(:variables, :id => :value_id)
                        .join(:values, :id => :id)
-                       .join(:variable_type_map, :id => :variables__type)
-             .select(:variables__id, Sequel.as(:name, :type), :table, :dependent_ids, :property_id)
+                       .join(:variable_types, :id => :variables__type_id)
+             .select(:variables__id, :type, :table, :dependent_ids, :property_id)
     variables_table = :our_variables
 
     ds = ds.with(variables_table, variables_ds)
 
-    exprs = Value.descendants.map do |klass|
+    Property
+    Function
+    exprs = Value.descendants.map { |k| k.table_name.to_s }.uniq.map do |table_name|
       d = db.from(variables_table)
-              .where(:table => klass.table_name.to_s)
-              .select(Sequel.qualify(variables_table, :id), :type, :dependent_ids, :property_id)
-      if klass.table_name == :values
+              .where(:table => table_name)
+              .select(Sequel.qualify(variables_table, :id), :type, :dependent_ids, Sequel.qualify(variables_table, :property_id))
+      if table_name == 'values'
         d.select_append(Sequel.as(nil, :value))
       else
-        d.join(klass.table_name, :id => :id)
-            .select_append(Sequel.function(:to_json, :value).as(:value))
+        d = d.join(table_name, :id => :id)
+
+        if table_name == 'functions'
+          lateral_ds = db.from(
+              FunctionDiscreteBreak.dataset.naked!
+                  .where(:function_id => Sequel.qualify(table_name, :id))
+                  .select(:minimums, :value).as(:r)
+          ).select(Sequel.function(:json_agg, Sequel.function(:row_to_json, :r)).as(:value)).lateral
+
+          d.join(lateral_ds, true).select_append(:value)
+        else
+          d.select_append(Sequel.function(:to_json, :value).as(:value))
+        end
       end
     end
 
@@ -150,9 +163,9 @@ class Predicate < Sequel::Model
                      .select(Sequel.function(:json_agg, Sequel.function(:row_to_json, :r)).as(:values)).lateral
 
     properties_js_ds = ds.from(
-        db.from(:properties).join(:variables, :id => :id).join(:variable_type_map, :id => :type)
+        db.from(:properties).join(:variables, :id => :id).join(:variable_types, :id => :type_id)
             .where(:properties__id => db.from(values_table).select(:property_id)).join(lateral_ds, true)
-            .select(:properties__id, Sequel.as(:name, :type), :value, :values).as(:r)
+            .select(:properties__id, :type, :value, :values).as(:r)
     ).select(Sequel.function(:json_agg, Sequel.function(:row_to_json, :r))).as(:properties)
 
     # # Screws up the query plan, does sequential search over variables!

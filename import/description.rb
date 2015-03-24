@@ -332,7 +332,7 @@ class DataDescription
     end
 
     def row_to_table(hash)
-      klass_s = Variable.cti_model_map[hash[:type]]
+      klass_s = Variable.cti_model_map[hash[:type_id]]
       Variable.cti_table_map[klass_s]
     end
 
@@ -346,7 +346,7 @@ class DataDescription
 
       variable_map = {}
       Variable.db[assertion_table].join(:assertions, :id => :id).stream.each do |assert_hash|
-        klass = id_to_class(assert_hash[:type], Assertion)
+        klass = id_to_class(assert_hash[:type_id], Assertion)
         next if klass == Supplier and assert_hash[:id] == @supplier.id
         raise "Unexpected class: #{klass}" unless klass == Product
 
@@ -372,7 +372,7 @@ class DataDescription
         id = value_hash[:value_id]
 
         unless predicate_map[id]
-          (table_map[table_s] ||= {})[id] = value_hash[:type]
+          (table_map[table_s] ||= {})[id] = value_hash[:type_id]
           predicate_map[id] = []
         end
 
@@ -394,10 +394,8 @@ class DataDescription
       stream_group_by(FunctionDiscreteBreak.dataset.naked!.where(:function_id => function_map.keys),
                       :function_id) do |current_id, current_set|
         # Similar to model function.rb
-        val = function_break_map[current_id] = current_set.each_with_object({}) do |brk, hash|
-          (hash[brk[:value]] ||= [])[brk[:argument]] = brk[:minimum]
-        end.each_with_object({}) do |(val, ary), hash|
-          hash[ary] = val
+        function_break_map[current_id] = current_set.each_with_object({}) do |brk, hash|
+          hash[brk[:minimums].to_a] = brk[:value]
         end
       end if function_map
       puts function_break_map.length

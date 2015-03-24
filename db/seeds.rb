@@ -6,7 +6,7 @@
 #   cities = City.create([{ name: 'Chicago' }, { name: 'Copenhagen' }])
 #   Mayor.create(name: 'Emanuel', city: cities.first)
 
-Variable
+Variable.update_types
 User.db.alter_table(:assertions) { set_column_allow_null :created_user_id }
 locale = Locale.create(name: 'system')
 user = User.create(value: 'system', locale: locale)
