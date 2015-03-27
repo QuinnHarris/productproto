@@ -31,6 +31,8 @@ class Variable < Sequel::Model
       Supplier: nil,
       ProductClass: nil,
       Product: nil,
+      Organization: nil,
+      ValueAdder: nil,
 
       Instance: [:value_integers, 17 * 2**8 + 1],
       #Variable: :variables,

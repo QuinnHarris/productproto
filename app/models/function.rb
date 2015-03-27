@@ -5,6 +5,7 @@ class Function < Value
 end
 
 class FunctionInput < Sequel::Model
+  many_to_one :function
 end
 
 

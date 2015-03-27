@@ -47,7 +47,9 @@ class VariableDescription < ModelDescription
       @id = id
     end
     raise "NO VALUE" if @value.nil?
+    @provides = []
   end
+  attr_reader :provides
 
   def value
     return @value unless @value.nil?
@@ -68,6 +70,10 @@ class VariableDescription < ModelDescription
     remain
   end
 
+  def add_provide(predicate)
+    #@provides << predicate
+  end
+
   def create(params = {})
     super(params.merge(value: @value))
   end
@@ -78,6 +84,7 @@ class PropertyDesc < VariableDescription
   def initialize(value)
     super value
     raise "Must have ID" unless @id
+    raise "Must be a Property: #{value.inspect}" unless value.is_a?(Property)
     @type = value.class
     @value_map = {}
   end
@@ -111,7 +118,7 @@ class ValueDesc < VariableDescription
   def initialize(property, value, id = nil)
     @property = property
     unless type.value_valid?(value)
-      raise "Invalid Value: #{property}: #{value}"
+      raise "Invalid Value: #{type.class}: #{value.inspect}"
     end
 
     super value, id
@@ -158,7 +165,7 @@ class ValueDesc < VariableDescription
     if predicate = @predicates[dependents]
       predicate.touch!
     else
-      add_predicate(PredicateDesc.new(dependents))
+      add_predicate(PredicateDesc.new(self, dependents))
     end
   end
 end
@@ -214,13 +221,17 @@ end
 
 
 class PredicateDesc < ModelDescription
-  def initialize(dependents, id = nil)
+  def initialize(value, dependents, id = nil)
     raise "Must have dependents" if dependents.empty?
-    dependents.each {|d| raise "Dependent must be variable: #{d}" unless d.is_a?(VariableDescription)}
+    dependents.each  do |d|
+      raise "Dependent must be variable: #{d}" unless d.is_a?(VariableDescription)
+      d.add_provide(self)
+    end
     @dependents = dependents.is_a?(Set) ? dependents : Set.new(dependents)
+    @value = value
     @id = id
   end
-  attr_reader :dependents, :touched
+  attr_reader :dependents, :value, :touched
   def touch!
     @touched = true unless new?
     self
@@ -391,8 +402,15 @@ class DataDescription
       function_map = table_map[:functions]
       print "  Function Breaks: "
 
-      stream_group_by(FunctionDiscreteBreak.dataset.naked!.where(:function_id => function_map.keys),
-                      :function_id) do |current_id, current_set|
+      ds = FunctionDiscreteBreak.dataset.naked!
+               .where(:function_id => function_map.keys)
+               .select_append(
+                   Sequel.function(:row_number)
+                       .over(partition: [:function_id, :minimums],
+                             order: Sequel.desc(:created_at)))
+               .from_self.where(:value => nil).invert.where(:row_number => 1)
+
+      stream_group_by(ds, :function_id) do |current_id, current_set|
         # Similar to model function.rb
         function_break_map[current_id] = current_set.each_with_object({}) do |brk, hash|
           hash[brk[:minimums].to_a] = brk[:value]
@@ -405,8 +423,18 @@ class DataDescription
       table_map.each do |table_name, sub_map|
         print "  Value (#{table_name}): "
         last_length = value_list.length
-        Value.db.from(table_name).join(:values, :id => :id)
-            .where(:values__id => sub_map.keys).stream.each do |sub_hash|
+        ds = Value.db.from(table_name).join(:values, :id => :id)
+                 .where(:values__id => sub_map.keys)
+
+        unless table_name == :functions
+            ds = ds.select_append(
+                Sequel.function(:row_number)
+                    .over(partition: [:values__id, :property_id],
+                          order: Sequel.desc(:created_at)))
+                     .from_self.where(:row_number => 1)
+        end
+
+        ds.stream.each do |sub_hash|
           @property_id_map[sub_hash[:property_id]] = true
 
           if table_name == :functions
@@ -441,7 +469,7 @@ class DataDescription
           dependents = list.map { |i| variable_map[i] }
           raise "Empty Dependent" if dependents.empty?
           raise "Dependent not mapped: #{list} => #{dependents} " if dependents.include?(nil)
-          vd.add_predicate PredicateDesc.new(dependents, predicate_id)
+          vd.add_predicate PredicateDesc.new(vd, dependents, predicate_id)
         end
       end
 
@@ -551,7 +579,7 @@ class DataDescription
               pred.create(vd)
               next
             end
-            puts "REMOVE"
+            puts "REMOVE: #{pred}"
             # Only existing untouched left (must be removed)
             pred.remove(vd)
             true

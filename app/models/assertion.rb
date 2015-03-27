@@ -45,7 +45,15 @@ class Collection < Assertion
 
 end
 
-class Supplier < Assertion
+class Organization < Assertion
+
+end
+
+class Supplier < Organization
+
+end
+
+class ValueAdder < Organization
 
 end
 
@@ -56,3 +64,4 @@ end
 class Product < Collection
 
 end
+
