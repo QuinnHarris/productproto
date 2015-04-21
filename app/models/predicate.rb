@@ -128,7 +128,7 @@ class Predicate < Sequel::Model
 
     Property
     Function
-    exprs = Value.descendants.map { |k| k.table_name.to_s }.uniq.map do |table_name|
+    values_ds = Value.descendants.map { |k| k.table_name.to_s }.uniq.map do |table_name|
       d = db.from(variables_table)
               .where(:table => table_name)
               .select(Sequel.qualify(variables_table, :id), :type, :dependent_ids, Sequel.qualify(variables_table, :property_id))
@@ -149,9 +149,8 @@ class Predicate < Sequel::Model
           d.select_append(Sequel.function(:to_json, :value).as(:value))
         end
       end
-    end
+    end.reduce { |a, b| a.union(b, all: true, from_self: false) }
 
-    values_ds = exprs[1..-1].inject(exprs.first) { |a, b| a.union(b, all: true, from_self: false) }
     values_table = :our_values
 
     ds = ds.with(values_table, values_ds)

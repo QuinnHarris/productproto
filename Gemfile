@@ -34,6 +34,8 @@ gem 'sdoc', '~> 0.4.0',          group: :doc
 gem 'devise'
 gem 'sequel-devise'
 
+gem 'sequel-table_inheritance'
+
 
 # Ember/Emblem
 gem 'ember-source', '~> 1.9.0' # Fixed until emblem supports 1.10 https://github.com/machty/emblem.js/issues/189

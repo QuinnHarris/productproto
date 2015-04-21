@@ -1,31 +1,31 @@
 class Variable < Sequel::Model
   type_map = {
-      PropertyNaturalSingle: :properties,
+      PropertyNaturalSingle: nil,
       PropertyStringSingle: nil,
       PropertyFloatSingle: nil,
       PropertyIntegerSingle: nil,
       PropertyBoolean: nil,
       PropertyNull: nil,
 
-      PropertyNaturalSet: [nil, 1 * 2**8],
+      PropertyNaturalSet: 1 * 2**8,
       PropertyStringSet: nil,
 
-      PropertyFunctionDiscrete: [nil, 2 * 2**8],
+      PropertyFunctionDiscrete: 2 * 2**8,
 
-      ValueNull: [:values, 8 * 2**8],
-      ValueNatural: :value_naturals,
-      ValueString: :value_strings,
-      ValueFloat: :value_floats,
-      ValueInteger: :value_integers,
-      ValueBoolean: :value_booleans,
+      ValueNull: 8 * 2**8,
+      ValueNatural: nil,
+      ValueString: nil,
+      ValueFloat: nil,
+      ValueInteger: nil,
+      ValueBoolean: nil,
 
-      FunctionDiscrete: [:functions, 9 * 2**8],
+      FunctionDiscrete: 9 * 2**8,
       FunctionDiscreteReplace: nil,
       FunctionDiscreteAdd: nil,
       FunctionDiscreteMultiply: nil,
 
-      User: [:users, 16 * 2**8],
-      Assertion: :assertions,
+      User: 16 * 2**8,
+      Assertion: nil,
       Collection: nil,
       InstanceCollection: nil,
       Supplier: nil,
@@ -34,32 +34,26 @@ class Variable < Sequel::Model
       Organization: nil,
       ValueAdder: nil,
 
-      Instance: [:value_integers, 17 * 2**8 + 1],
-      #Variable: :variables,
+      Instance: 17 * 2**8 + 1, # ValueInteger table
 
-      PropertyValue: :variables,
-      Property: :properties,
+      PropertyValue: nil,
+      Property: nil,
       PropertySingle: nil,
       PropertySet: nil,
       PropertyFunction: nil,
-      Value: :values,
-      Function: :functions,
+      Value: nil,
+      Function: nil,
   }
 
-  table_map = {}
   model_map = {}
   index = 0
-  table = nil
-  type_map.each do |c, v|
-    t, i = Array(v)
+  type_map.each do |c, i|
     index = i || index
-    table = t || table
-    table_map[c] = table
     model_map[index] = c
     index += 1
   end
   #plugin :insert_returning_select
-  plugin :improved_class_table_inheritance, key: :type_id, table_map: table_map, model_map: model_map
+  plugin :hybrid_table_inheritance, key: :type_id, model_map: model_map, eager_load: true
 
   many_to_one :created_user, class: :User
   many_to_one :locale

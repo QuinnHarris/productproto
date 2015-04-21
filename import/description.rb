@@ -336,15 +336,13 @@ class DataDescription
 
   def db_load
     def id_to_class(id, type)
-      klass_s = Variable.cti_model_map[id]
-      klass = Variable.send(:constantize, klass_s)
+      klass = Variable.sti_class_from_key(id)
       raise "Must be a #{type}: #{klass}" unless klass.ancestors.include?(type)
       klass
     end
 
     def row_to_table(hash)
-      klass_s = Variable.cti_model_map[hash[:type_id]]
-      Variable.cti_table_map[klass_s]
+      Variable.sti_class_from_key(hash[:type_id]).table_name
     end
 
     puts "Loading from Database:"
